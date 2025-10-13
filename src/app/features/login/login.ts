@@ -67,6 +67,18 @@ export class Login {
 
         this.loginData.errorMessage = '';
         localStorage.setItem('token', res.response.token);
+
+        const user = {
+          perfil: res.response.perfil,
+          empresa: res.response.empresa,
+          nombre: res.response.nombre,
+          apellido: res.response.apellido,
+          correo: res.response.correo,
+          cel: res.response.cel,
+          permiso: res.response.permiso
+        };
+        localStorage.setItem('user', JSON.stringify(user));
+
         const msg = res?.response?.mensaje ?? 'Login exitoso';
         this.router.navigate(['/home']);
       },
