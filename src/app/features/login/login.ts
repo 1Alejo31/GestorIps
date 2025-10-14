@@ -79,8 +79,7 @@ export class Login {
         };
         localStorage.setItem('user', JSON.stringify(user));
 
-        const msg = res?.response?.mensaje ?? 'Login exitoso';
-        this.router.navigate(['/home']);
+        this.router.navigate(['home']);
       },
       error: (err: any) => {
         const msg = this.extractApiErrorMessage(err);

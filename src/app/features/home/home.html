@@ -1,0 +1,24 @@
+<div class="layout" [class.collapsed]="isSidebarCollapsed" *ngIf="user as u">
+    <!-- Sidebar -->
+    <app-aside [activePanel]="activePanel" (selectPanel)="activatePanel($event)"></app-aside>
+    <!-- (Fijo) Se eliminó el cierre duplicado </app-aside> -->
+
+    <!-- Main -->
+    <main class="main">
+        <app-topbar (menuToggle)="toggleSidebar()" (logoutClick)="logout()"></app-topbar>
+
+        <!-- Panel Dashboard -->
+        <div *ngIf="activePanel === 'dashboard'">
+            <app-registro-usuarios></app-registro-usuarios>
+        </div>
+        <!-- Panel Formulario de Registro de Usuarios -->
+        <app-registro-usuarios *ngIf="activePanel === 'registroUsuarios'"></app-registro-usuarios>
+        
+    </main>
+</div>
+
+<div class="layout" *ngIf="!user">
+    <main class="main container py-4">
+        <p>Cargando información...</p>
+    </main>
+</div>

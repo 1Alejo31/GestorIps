@@ -1,0 +1,41 @@
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    background: #fff;
+    /* usa tu variable global si la tienes, ej. var(--dashboard-bg) */
+    border-radius: .5rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.topbar .icon-btn {
+    border: none;
+    background: #f1f3f5;
+    border-radius: .375rem;
+    padding: .35rem .6rem;
+    cursor: pointer;
+}
+
+.topbar .breadcrumb .sep {
+    margin: 0 .5rem;
+    color: #94a3b8;
+}
+
+.user .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    background: #f1f3f5;
+    /* ajusta si tienes variable global */
+    color: #334155;
+}
+
+.user .name {
+    font-weight: 500;
+    color: #334155;
+}
