@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Topbar } from "../../shared/topbar/topbar";
 import { Aside } from "../../shared/aside/aside";
 import { RegistroUsuarios } from "../../features/admin/registroUsuarios/registro-usuarios";
+import { HojaVida } from "../../features/admin/HojaVida/hoja-vida";
 
 interface User {
     perfil: string;
@@ -18,7 +19,7 @@ interface User {
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, Topbar, Aside, RegistroUsuarios],
+    imports: [CommonModule, Topbar, Aside, RegistroUsuarios, HojaVida],
     templateUrl: './home.html',
     styleUrls: ['./home.css'],
 })
@@ -54,11 +55,10 @@ export class Home implements OnInit {
         this.isSidebarCollapsed = !this.isSidebarCollapsed;
     }
 
-    activePanel: 'dashboard' | 'registroUsuarios' = 'dashboard';
+    activePanel: 'dashboard' | 'registroUsuarios' | 'hojaVida' = 'dashboard';
 
     activatePanel(panel: string) {
-        // Acepta string y asegura que sólo se asignen paneles válidos
-        if (panel === 'dashboard' || panel === 'registroUsuarios') {
+        if (panel === 'dashboard' || panel === 'registroUsuarios' || panel === 'hojaVida') {
             this.activePanel = panel;
         }
     }

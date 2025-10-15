@@ -23,7 +23,7 @@
     background: #ffffff;
     border-radius: 10px;
     padding: 1.5rem;
-    box-shadow: 0 10px 30px rgba(15, 155, 180, 0.419);
+    box-shadow: 0 10px 30px #0187e143;
 }
 
 .logo {

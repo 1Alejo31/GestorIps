@@ -2,7 +2,6 @@
 
 :host {
     --primary: #69B5D4;
-    --bg: #f3f4f8;
     --dashboard-bg: #eaedf7;
     --card-bg: #fff;
     --text: #2c2e3e;
@@ -42,6 +41,16 @@
 
 .sidebar .menu-item.active {
     background: rgba(255, 255, 255, 0.22);
+}
+
+/* Agregar estilos para el texto activo */
+.sidebar .menu-item.active .text {
+    color: #69B5D4 !important;
+}
+
+/* Asegurar que el texto no activo sea blanco */
+.sidebar .menu-item .text {
+    color: #ffffff;
 }
 
 .sidebar .badge {

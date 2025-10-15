@@ -1,17 +1,24 @@
 <aside class="sidebar d-flex flex-column">
     <div class="brand d-flex align-items-center gap-2 fw-bold">
         <span class="brand-logo d-inline-grid place-items-center">
-            <img src="../../../assets/images/icono.png" alt="" class="logo" width="100%">
+            <img src="../../../assets/images/icono2.png" alt="" class="logo" width="100%">
         </span>
-        <span class="brand-text">GestorIps</span>
+        <span class="brand-text">REDCEM</span>
     </div>
 
     <nav class="menu">
-        <a class="active menu-item d-grid" (click)="openRegistroUsuarios()">
-            <span class="icon">🏠</span>
-            <span class="text" style="font-size: 1.0rem; text-transform: uppercase; color: #69B5D4;">Registro de
+        <a class="menu-item d-grid" [class.active]="activePanel === 'registroUsuarios'"
+            (click)="openRegistroUsuarios()">
+            <span class="icon">👤</span>
+            <span class="text" style="font-size: 1.0rem; text-transform: uppercase;">Registro de
                 usuario</span>
         </a>
+
+        <a class="menu-item d-grid" [class.active]="activePanel === 'hojaVida'" (click)="openHojaVida()">
+            <span class="icon">📋</span>
+            <span class="text" style="font-size: 1.0rem; text-transform: uppercase;">Hoja de Vida</span>
+        </a>
+
         <div class="menu-section text-uppercase">Applications</div>
         <a class="menu-item d-grid" role="button">
             <span class="icon">📦</span>

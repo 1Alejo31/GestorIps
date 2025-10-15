@@ -1,7 +1,6 @@
 <div class="layout" [class.collapsed]="isSidebarCollapsed" *ngIf="user as u">
     <!-- Sidebar -->
     <app-aside [activePanel]="activePanel" (selectPanel)="activatePanel($event)"></app-aside>
-    <!-- (Fijo) Se eliminó el cierre duplicado </app-aside> -->
 
     <!-- Main -->
     <main class="main">
@@ -9,11 +8,14 @@
 
         <!-- Panel Dashboard -->
         <div *ngIf="activePanel === 'dashboard'">
-            <app-registro-usuarios></app-registro-usuarios>
+            <!-- aquí tu contenido normal del dashboard -->
         </div>
+
         <!-- Panel Formulario de Registro de Usuarios -->
         <app-registro-usuarios *ngIf="activePanel === 'registroUsuarios'"></app-registro-usuarios>
-        
+
+        <!-- Panel Formulario de Hoja de Vida -->
+        <app-hoja-vida *ngIf="activePanel === 'hojaVida'"></app-hoja-vida>
     </main>
 </div>
 

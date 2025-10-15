@@ -13,10 +13,14 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 export class Aside {
     constructor(private router: Router) { }
 
-  @Input() activePanel: string = 'dashboard';
-  @Output() selectPanel = new EventEmitter<string>();
+    @Input() activePanel: string = 'dashboard';
+    @Output() selectPanel = new EventEmitter<string>();
 
-  openRegistroUsuarios() {
-    this.selectPanel.emit('registroUsuarios');
-  }
+    openRegistroUsuarios() {
+        this.selectPanel.emit('registroUsuarios');
+    }
+
+    openHojaVida() {
+        this.selectPanel.emit('hojaVida');
+    }
 }
