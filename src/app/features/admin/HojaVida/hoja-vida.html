@@ -807,25 +807,28 @@
                                                 <i class="fas fa-id-card me-1"></i>Documento
                                             </th>
                                             <th style="min-width: 150px;">
-                                                <i class="fas fa-user me-1"></i>Nombre
+                                                <i class="fas fa-user me-1"></i>
+                                                <span class="d-none d-md-inline">Nombre</span>
+                                                <span class="d-md-none">Info</span>
                                             </th>
-                                            <th style="min-width: 150px;">
+                                            <th style="min-width: 150px;" class="d-none d-lg-table-cell">
                                                 <i class="fas fa-user me-1"></i>Primer Apellido
                                             </th>
-                                            <th style="min-width: 180px;">
+                                            <th style="min-width: 180px;" class="d-none d-xl-table-cell">
                                                 <i class="fas fa-envelope me-1"></i>Correo
                                             </th>
-                                            <th style="min-width: 120px;">
+                                            <th style="min-width: 120px;" class="d-none d-lg-table-cell">
                                                 <i class="fas fa-phone me-1"></i>Teléfono
                                             </th>
-                                            <th style="min-width: 120px;">
+                                            <th style="min-width: 120px;" class="d-none d-md-table-cell">
                                                 <i class="fas fa-map-marker-alt me-1"></i>Ciudad
                                             </th>
                                             <th style="min-width: 100px;">
                                                 <i class="fas fa-flag me-1"></i>Estado
                                             </th>
                                             <th style="min-width: 120px;" class="text-center">
-                                                <i class="fas fa-cogs me-1"></i>Acciones
+                                                <i class="fas fa-cogs me-1"></i>
+                                                <span class="d-none d-sm-inline">Acciones</span>
                                             </th>
                                         </tr>
                                     </thead>
@@ -839,47 +842,66 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="d-inline-block text-truncate fw-semibold"
-                                                    style="max-width: 150px;" [title]="hoja.NOMBRE">
-                                                    {{ hoja.NOMBRE }}
-                                                </span>
+                                                <!-- Vista desktop: solo nombre -->
+                                                <div class="d-none d-md-block">
+                                                    <span class="d-inline-block text-truncate fw-semibold"
+                                                        style="max-width: 150px;" [title]="hoja.NOMBRE">
+                                                        {{ hoja.NOMBRE }}
+                                                    </span>
+                                                </div>
+                                                <!-- Vista móvil: información condensada -->
+                                                <div class="d-md-none">
+                                                    <div class="fw-semibold text-truncate" style="max-width: 140px;"
+                                                        [title]="hoja.NOMBRE + ' ' + hoja.PRIMER_APELLIDO">
+                                                        {{ hoja.NOMBRE }} {{ hoja.PRIMER_APELLIDO }}
+                                                    </div>
+                                                    <small class="text-muted text-truncate d-block"
+                                                        style="max-width: 140px;" [title]="hoja.CORREO">
+                                                        📧 {{ hoja.CORREO }}
+                                                    </small>
+                                                    <small class="text-muted text-truncate d-block"
+                                                        style="max-width: 140px;" [title]="hoja.CIUDAD">
+                                                        📍 {{ hoja.CIUDAD }}
+                                                    </small>
+                                                </div>
                                             </td>
-                                            <td>
+                                            <td class="d-none d-lg-table-cell">
                                                 <span class="d-inline-block text-truncate fw-semibold"
                                                     style="max-width: 150px;" [title]="hoja.PRIMER_APELLIDO">
                                                     {{ hoja.PRIMER_APELLIDO }}
                                                 </span>
                                             </td>
-
-                                            <td>
+                                            <td class="d-none d-xl-table-cell">
                                                 <span class="d-inline-block text-truncate" style="max-width: 180px;"
                                                     [title]="hoja.CORREO">
                                                     {{ hoja.CORREO }}
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="d-none d-lg-table-cell">
                                                 <span class="d-inline-block text-truncate" style="max-width: 120px;"
                                                     [title]="hoja.TELEFONO">
                                                     {{ hoja.TELEFONO }}
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="d-none d-md-table-cell">
                                                 <span class="d-inline-block text-truncate" style="max-width: 120px;"
                                                     [title]="hoja.CIUDAD">
                                                     {{ hoja.CIUDAD }}
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg bg-success" [ngClass]="getBadgeClass(hoja.ESTADO)">
+                                                <span class="badge bg bg-success"
+                                                    [ngClass]="getBadgeClass(hoja.ESTADO)">
                                                     <span class="me-1">●</span>
-                                                    {{ hoja.ESTADO }}
+                                                    <span class="d-none d-sm-inline">{{ hoja.ESTADO }}</span>
+                                                    <span class="d-sm-none">{{ hoja.ESTADO.substring(0, 3) }}</span>
                                                 </span>
                                             </td>
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-sm btn-action btn-outline-info"
                                                     (click)="verDetalleHoja(hoja)" title="Ver detalles completos">
                                                     <span class="me-1">👁️</span>
-                                                    <span class="d-none d-md-inline">Ver Detalles</span>
+                                                    <span class="d-none d-sm-inline">Ver Detalles</span>
                                                 </button>
                                             </td>
                                         </tr>
@@ -911,7 +933,8 @@
 
                         <!-- Paginación -->
                         @if (hojasVidaFiltradas.length > 0) {
-                        <div class="pagination-container d-flex justify-content-between align-items-center mt-4 p-3 bg-light rounded">
+                        <div
+                            class="pagination-container d-flex justify-content-between align-items-center mt-4 p-3 bg-light rounded">
                             <div class="pagination-info">
                                 <span class="text-primary fw-semibold">
                                     Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} -
@@ -922,8 +945,8 @@
                             <nav aria-label="Paginación">
                                 <ul class="pagination pagination-custom mb-0">
                                     <li class="page-item" [class.disabled]="currentPage === 1">
-                                        <button class="page-link" (click)="cambiarPagina(currentPage - 1)" 
-                                                [disabled]="currentPage === 1">
+                                        <button class="page-link" (click)="cambiarPagina(currentPage - 1)"
+                                            [disabled]="currentPage === 1">
                                             ‹ Anterior
                                         </button>
                                     </li>
@@ -934,7 +957,7 @@
                                     }
                                     <li class="page-item" [class.disabled]="currentPage === totalPages">
                                         <button class="page-link" (click)="cambiarPagina(currentPage + 1)"
-                                                [disabled]="currentPage === totalPages">
+                                            [disabled]="currentPage === totalPages">
                                             Siguiente ›
                                         </button>
                                     </li>

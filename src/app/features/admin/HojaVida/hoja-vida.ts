@@ -17,36 +17,29 @@ export class HojaVida {
     form: FormGroup;
     submitted = false;
 
-    // Variable para controlar las pestañas
     activeTab = 'individual';
 
-    // Variables para carga masiva
     selectedFile: File | null = null;
     isProcessing = false;
     uploadResults: any[] = [];
     showResults = false;
 
-    // Variables para previsualización
     previewData: any[] = [];
     showPreview = false;
     validationErrors: any[] = [];
     
-    // Variables para paginación y búsqueda de previsualización
     previewSearchTerm = '';
     previewCurrentPage = 1;
     previewItemsPerPage = 10;
     previewFilteredData: any[] = [];
 
-    // Variables para resultados del procesamiento
     successfulRecords: any[] = [];
     duplicateRecords: any[] = [];
     processingMessage = '';
     hasErrors = false;
 
-    // Para usar Math en el template
     Math = Math;
 
-    // Variables para consulta de hojas de vida
     hojasVidaExistentes: any[] = [];
     hojasVidaFiltradas: any[] = [];
     isLoadingConsulta = false;
@@ -862,11 +855,11 @@ export class HojaVida {
 
     // Ver detalle completo de una hoja de vida
     verDetalleHoja(hoja: any): void {
-        let html = '<div class="text-start">';
+        let html = '<div class="text-start" style="font-family: Arial, sans-serif;">';
         
         // Header con estado
-        html += `<div class="d-flex justify-content-between align-items-center mb-3">`;
-        html += `<h4 class="text-primary mb-0">Detalle de Hoja de Vida</h4>`;
+        html += `<div class="d-flex align-items-center mb-3">`;
+        html += `<h5 class="mb-0 me-3">Detalle de Hoja de Vida</h5>`;
         const statusBadge = hoja.ESTADO === 'ACTIVO' ? 
             '<span class="badge bg-success">✓ Activo</span>' : 
             hoja.ESTADO === 'PENDIENTE' ? 
@@ -893,9 +886,13 @@ export class HojaVida {
 
         personalFields.forEach(field => {
             const value = hoja[field.key] || 'N/A';
-            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            const hasError = false; // En este caso no hay validación de errores
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
             html += `<strong class="text-muted">${field.label}:</strong><br>`;
-            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
             html += `</div>`;
         });
         
@@ -916,9 +913,13 @@ export class HojaVida {
 
         contactFields.forEach(field => {
             const value = hoja[field.key] || 'N/A';
-            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            const hasError = false;
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
             html += `<strong class="text-muted">${field.label}:</strong><br>`;
-            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
             html += `</div>`;
         });
         
@@ -942,9 +943,13 @@ export class HojaVida {
 
         academicFields.forEach(field => {
             const value = hoja[field.key] || 'N/A';
-            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            const hasError = false;
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
             html += `<strong class="text-muted">${field.label}:</strong><br>`;
-            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
             html += `</div>`;
         });
         
@@ -969,13 +974,18 @@ export class HojaVida {
 
         additionalFields.forEach(field => {
             let value = hoja[field.key] || 'N/A';
+            const hasError = false;
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
             if (field.key === 'ESTADO') {
                 const badgeClass = value === 'ACTIVO' ? 'bg-success' : value === 'PENDIENTE' ? 'bg-warning' : 'bg-danger';
                 value = `<span class="badge ${badgeClass}">${value}</span>`;
             }
-            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
             html += `<strong class="text-muted">${field.label}:</strong><br>`;
-            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
             html += `</div>`;
         });
         
@@ -996,12 +1006,17 @@ export class HojaVida {
 
         systemFields.forEach(field => {
             let value = hoja[field.key] || 'N/A';
+            const hasError = false;
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
             if (field.isDate && value !== 'N/A') {
                 value = this.formatearFecha(value);
             }
-            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
             html += `<strong class="text-muted">${field.label}:</strong><br>`;
-            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em; font-family: monospace;">${value}</span>`;
             html += `</div>`;
         });
         
@@ -1012,10 +1027,11 @@ export class HojaVida {
             title: `${hoja.NOMBRE} ${hoja.PRIMER_APELLIDO} ${hoja.SEGUNDO_APELLIDO || ''}`,
             html: html,
             icon: 'info',
-            width: '1000px',
+            width: '900px',
+            showCloseButton: true,
             confirmButtonText: 'Cerrar',
             customClass: {
-                popup: 'text-start'
+                popup: 'swal-wide'
             }
         });
     }
