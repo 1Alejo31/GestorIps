@@ -1,8 +1,8 @@
-import { inject } from '@angular/core';
-import { Routes, Router } from '@angular/router';
+import { Routes } from '@angular/router';
 import { Login } from './features/login/login';
 import { Home } from './features/home/home';
 import { RegistroUsuarios } from './features/admin/registroUsuarios/registro-usuarios';
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -10,16 +10,12 @@ export const routes: Routes = [
     {
         path: 'home',
         component: Home,
-        canActivate: [() => {
-            const router = inject(Router);
-            const hasToken = !!localStorage.getItem('token');
-            if (!hasToken) {
-                router.navigate(['/login']);
-                return false;
-            }
-            return true;
-        }]
+        canActivate: [authGuard]
     },
-    { path: 'admin/registro-usuarios', component: RegistroUsuarios /*, canActivate: [authGuard]*/ },
+    {
+        path: 'admin/registro-usuarios',
+        component: RegistroUsuarios,
+        canActivate: [authGuard]
+    },
     { path: '**', redirectTo: 'login' }
 ];

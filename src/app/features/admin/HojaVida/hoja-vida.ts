@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { RegisterHojaVidaService } from './hoja.service';
+import { AuthService } from '../../../core/auth.service';
 
 @Component({
     selector: 'app-hoja-vida',
@@ -58,7 +59,8 @@ export class HojaVida {
 
     constructor(
         private fb: FormBuilder,
-        private hojaVidaService: RegisterHojaVidaService
+        private hojaVidaService: RegisterHojaVidaService,
+        private authService: AuthService
     ) {
         this.form = this.fb.group({
 
@@ -768,6 +770,34 @@ export class HojaVida {
             },
             error: (error) => {
                 this.isLoadingConsulta = false;
+                
+                // Verificar si es un error de autenticación
+                if (error.status === 401) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesión Expirada',
+                        text: 'Tu sesión ha expirado. Serás redirigido al login.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    this.authService.handleAuthError();
+                    return;
+                }
+                
+                // Verificar si no hay token
+                if (!this.authService.getToken()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesión Requerida',
+                        text: 'Debes iniciar sesión para acceder a esta función.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    this.authService.handleAuthError();
+                    return;
+                }
+                
+                // Otros errores
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
@@ -1035,4 +1065,6 @@ export class HojaVida {
             }
         });
     }
+
+
 }

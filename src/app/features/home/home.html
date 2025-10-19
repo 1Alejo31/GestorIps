@@ -8,7 +8,80 @@
 
         <!-- Panel Dashboard -->
         <div *ngIf="activePanel === 'dashboard'">
-            <!-- aquí tu contenido normal del dashboard -->
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Panel de bienvenida -->
+                    <div class="col-12 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h4 class="card-title text-primary">
+                                    <i class="fas fa-home me-2"></i>
+                                    Bienvenido, {{ user?.nombre }} {{ user?.apellido }}
+                                </h4>
+                                <p class="card-text text-muted">
+                                    Perfil: <span class="badge bg-primary">{{ user?.perfil }}</span> | 
+                                    Empresa: <span class="badge bg-secondary">{{ user?.empresa }}</span> |
+                                    Permisos: <span class="badge bg-info">{{ user?.permiso }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de estado de sesión -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    Estado de Sesión
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="status-indicator bg-success rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                                    <span class="fw-bold text-success">Sesión Activa</span>
+                                </div>
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Tiempo de sesión: <span class="fw-bold">{{ getSessionDuration() }} minutos</span>
+                                </p>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-user me-2"></i>
+                                    Autenticado como: {{ user?.correo }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel de acciones rápidas -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    Acciones Rápidas
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" (click)="activatePanel('hojaVida')">
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        Gestionar Hojas de Vida
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" (click)="activatePanel('registroUsuarios')" *ngIf="hasPermiso('Escritura')">
+                                        <i class="fas fa-user-plus me-2"></i>
+                                        Registrar Usuario
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" (click)="checkAuthStatus()">
+                                        <i class="fas fa-sync me-2"></i>
+                                        Verificar Estado de Sesión
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Panel Formulario de Registro de Usuarios -->

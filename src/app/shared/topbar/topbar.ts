@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
     selector: 'app-topbar',
@@ -10,9 +11,12 @@ import { Router } from '@angular/router';
     styleUrls: ['./topbar.css']
 })
 
-export class Topbar implements OnInit {
+export class Topbar implements OnInit, OnDestroy {
 
-    constructor(private router: Router) { }
+    constructor(
+        private router: Router,
+        private authService: AuthService
+    ) { }
 
     @Output() menuToggle = new EventEmitter<void>();
     @Output() importClick = new EventEmitter<void>();
@@ -22,8 +26,18 @@ export class Topbar implements OnInit {
 
     displayName = 'Usuario';
     initials = 'U';
+    sessionDuration = 0;
+    isAuthenticated = false;
+    private sessionCheckInterval: any;
 
     ngOnInit(): void {
+        // Verificar estado inicial
+        this.updateSessionStatus();
+        
+        // Configurar verificación periódica cada minuto
+        this.sessionCheckInterval = setInterval(() => {
+            this.updateSessionStatus();
+        }, 60000); // 60 segundos
         try {
             const raw = localStorage.getItem('user');
             if (raw) {
@@ -50,13 +64,7 @@ export class Topbar implements OnInit {
         this.menuToggle.emit();
     }
     logout(): void {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        this.router.navigate(['/login']);
-    }
-
-    onLogout() {
-        this.logoutClick.emit();
+        this.authService.logout();
     }
 
     private computeInitials(name: string): string {
@@ -65,5 +73,26 @@ export class Topbar implements OnInit {
         const first = parts[0]?.charAt(0) ?? 'U';
         const last = parts[parts.length - 1]?.charAt(0) ?? '';
         return (first + last).toUpperCase();
+    }
+
+    private updateSessionStatus(): void {
+        this.isAuthenticated = this.authService.isAuthenticated();
+        this.sessionDuration = this.authService.getSessionDuration();
+    }
+
+    getSessionStatusClass(): string {
+        if (!this.isAuthenticated) return 'text-danger';
+        return 'text-success';
+    }
+
+    getSessionStatusText(): string {
+        if (!this.isAuthenticated) return 'Desconectado';
+        return 'Conectado';
+    }
+
+    ngOnDestroy(): void {
+        if (this.sessionCheckInterval) {
+            clearInterval(this.sessionCheckInterval);
+        }
     }
 }

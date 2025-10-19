@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LoginService } from './login.service';
+import { AuthService } from '../../core/auth.service';
 import Swal from 'sweetalert2';
 
 
@@ -21,7 +22,11 @@ export class Login {
     errorMessage: ''
   }
 
-  constructor(private loginService: LoginService, private router: Router) { }
+  constructor(
+    private loginService: LoginService,
+    private router: Router,
+    private authService: AuthService
+  ) { }
 
   private extractApiErrorMessage(err: any): string {
     try {
@@ -78,6 +83,9 @@ export class Login {
           permiso: res.response.permiso
         };
         localStorage.setItem('user', JSON.stringify(user));
+
+        // Establecer estado de autenticación
+        this.authService.setAuthStatus(true);
 
         this.router.navigate(['home']);
       },
