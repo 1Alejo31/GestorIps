@@ -30,6 +30,12 @@ export class HojaVida {
     previewData: any[] = [];
     showPreview = false;
     validationErrors: any[] = [];
+    
+    // Variables para paginación y búsqueda de previsualización
+    previewSearchTerm = '';
+    previewCurrentPage = 1;
+    previewItemsPerPage = 10;
+    previewFilteredData: any[] = [];
 
     // Variables para resultados del procesamiento
     successfulRecords: any[] = [];
@@ -263,6 +269,10 @@ export class HojaVida {
 
                 this.showPreview = true;
                 this.isProcessing = false;
+                
+                // Inicializar datos filtrados
+                this.previewFilteredData = [...this.previewData];
+                this.previewCurrentPage = 1;
 
                 if (this.validationErrors.length > 0) {
                     Swal.fire({
@@ -385,6 +395,97 @@ export class HojaVida {
         this.showPreview = false;
         this.previewData = [];
         this.validationErrors = [];
+        this.previewSearchTerm = '';
+        this.previewCurrentPage = 1;
+        this.previewFilteredData = [];
+    }
+
+    // Filtrar datos de previsualización
+    filtrarPreviewData(): void {
+        if (!this.previewSearchTerm.trim()) {
+            this.previewFilteredData = [...this.previewData];
+        } else {
+            const searchTerm = this.previewSearchTerm.toLowerCase().trim();
+            this.previewFilteredData = this.previewData.filter(item => {
+                const data = item.data;
+                return (
+                    (data.DOCUMENTO && data.DOCUMENTO.toString().toLowerCase().includes(searchTerm)) ||
+                    (data.NOMBRE && data.NOMBRE.toLowerCase().includes(searchTerm)) ||
+                    (data.PRIMER_APELLIDO && data.PRIMER_APELLIDO.toLowerCase().includes(searchTerm)) ||
+                    (data.SEGUNDO_APELLIDO && data.SEGUNDO_APELLIDO.toLowerCase().includes(searchTerm)) ||
+                    (data.CORREO && data.CORREO.toLowerCase().includes(searchTerm)) ||
+                    (data.CODIPROGACAD && data.CODIPROGACAD.toString().toLowerCase().includes(searchTerm)) ||
+                    (data.CIUDAD && data.CIUDAD.toLowerCase().includes(searchTerm))
+                );
+            });
+        }
+        this.previewCurrentPage = 1; // Reset a la primera página
+    }
+
+    // Obtener datos paginados de previsualización
+    get previewDataPaginados(): any[] {
+        const startIndex = (this.previewCurrentPage - 1) * this.previewItemsPerPage;
+        const endIndex = startIndex + this.previewItemsPerPage;
+        return this.previewFilteredData.slice(startIndex, endIndex);
+    }
+
+    // Obtener total de páginas de previsualización
+    get previewTotalPages(): number {
+        return Math.ceil(this.previewFilteredData.length / this.previewItemsPerPage);
+    }
+
+    // Cambiar página de previsualización
+    cambiarPaginaPreview(page: number): void {
+        if (page >= 1 && page <= this.previewTotalPages) {
+            this.previewCurrentPage = page;
+        }
+    }
+
+    // Obtener array de páginas para previsualización
+    get previewPaginasArray(): number[] {
+        const totalPages = this.previewTotalPages;
+        const currentPage = this.previewCurrentPage;
+        const pages: number[] = [];
+        
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 4) {
+                for (let i = 1; i <= 5; i++) {
+                    pages.push(i);
+                }
+                pages.push(-1); // Indicador de "..."
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1);
+                pages.push(-1); // Indicador de "..."
+                for (let i = totalPages - 4; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push(-1); // Indicador de "..."
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(i);
+                }
+                pages.push(-1); // Indicador de "..."
+                pages.push(totalPages);
+            }
+        }
+        
+        return pages;
+    }
+
+    // Obtener cantidad de registros válidos
+    get previewValidCount(): number {
+        return this.previewData.filter(item => item.isValid).length;
+    }
+
+    // Obtener cantidad de registros con errores
+    get previewErrorCount(): number {
+        return this.previewData.filter(item => !item.isValid).length;
     }
 
     limpiar(): void {
@@ -470,57 +571,186 @@ export class HojaVida {
         const data = item.data;
         const errors = item.errors || [];
 
-        let html = '<div class="text-start">';
-        html += '<h6>Datos de la fila ' + item.fila + ':</h6>';
-        html += '<div class="row">';
+        let html = '<div class="text-start" style="font-family: Arial, sans-serif;">';
+        
+        // Header con estado
+        html += `<div class="d-flex align-items-center mb-3">`;
+        html += `<h5 class="mb-0 me-3">Detalles del Registro - Fila ${item.fila}</h5>`;
+        const statusBadge = item.isValid ? 
+            '<span class="badge bg-success">✓ Válido</span>' : 
+            '<span class="badge bg-danger">✗ Con Errores</span>';
+        html += statusBadge;
+        html += `</div>`;
 
-        // Mostrar todos los campos
-        const fields = [
-            { key: 'PKEYHOJAVIDA', label: 'ID Hoja de Vida' },
-            { key: 'PKEYASPIRANT', label: 'ID Aspirante' },
-            { key: 'CODIPROGACAD', label: 'Programa Académico' },
-            { key: 'DOCUMENTO', label: 'Documento' },
-            { key: 'NOMBRE', label: 'Nombre' },
-            { key: 'PRIMER_APELLIDO', label: 'Primer Apellido' },
-            { key: 'SEGUNDO_APELLIDO', label: 'Segundo Apellido' },
-            { key: 'EDAD', label: 'Edad' },
-            { key: 'GENERO', label: 'Género' },
-            { key: 'CORREO', label: 'Correo' },
-            { key: 'CELULAR', label: 'Celular' },
-            { key: 'CIUDAD', label: 'Ciudad' },
-            { key: 'DEPARTAMENTO', label: 'Departamento' }
+        // Información Personal
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-primary text-white"><strong>📋 Información Personal</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const personalFields = [
+            { key: 'DOCUMENTO', label: '🆔 Documento', icon: '🆔' },
+            { key: 'NOMBRE', label: '👤 Nombre', icon: '👤' },
+            { key: 'PRIMER_APELLIDO', label: '👤 Primer Apellido', icon: '👤' },
+            { key: 'SEGUNDO_APELLIDO', label: '👤 Segundo Apellido', icon: '👤' },
+            { key: 'EDAD', label: '🎂 Edad', icon: '🎂' },
+            { key: 'GENERO', label: '⚧ Género', icon: '⚧' },
+            { key: 'FECH_NACIMIENTO', label: '📅 Fecha de Nacimiento', icon: '📅' }
         ];
 
-        fields.forEach(field => {
+        personalFields.forEach(field => {
             const value = data[field.key] || 'N/A';
-            const hasError = errors.some((error: string) => error.includes(field.label));
-            const colorClass = hasError ? 'text-danger' : 'text-success';
+            const hasError = errors.some((error: string) => error.includes(field.label.replace(/[🆔👤🎂⚧📅]/g, '').trim()));
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
 
-            html += `<div class="col-md-6 mb-2">`;
-            html += `<strong>${field.label}:</strong> `;
-            html += `<span class="${colorClass}">${value}</span>`;
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
             html += `</div>`;
         });
+        
+        html += '</div></div></div>';
 
-        html += '</div>';
+        // Información de Contacto
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-info text-white"><strong>📞 Información de Contacto</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const contactFields = [
+            { key: 'CORREO', label: '📧 Correo Electrónico', icon: '📧' },
+            { key: 'TELEFONO', label: '☎️ Teléfono', icon: '☎️' },
+            { key: 'CELULAR', label: '📱 Celular', icon: '📱' },
+            { key: 'DIRECCION', label: '🏠 Dirección', icon: '🏠' }
+        ];
 
+        contactFields.forEach(field => {
+            const value = data[field.key] || 'N/A';
+            const hasError = errors.some((error: string) => error.includes(field.label.replace(/[📧☎️📱🏠]/g, '').trim()));
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Información Académica y Ubicación
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-success text-white"><strong>🎓 Información Académica y Ubicación</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const academicFields = [
+            { key: 'CODIPROGACAD', label: '🎓 Programa Académico', icon: '🎓' },
+            { key: 'ANNOPERIACAD', label: '📅 Año Período Académico', icon: '📅' },
+            { key: 'NUMEPERIACAD', label: '🔢 Número Período Académico', icon: '🔢' },
+            { key: 'CIUDAD', label: '🏙️ Ciudad', icon: '🏙️' },
+            { key: 'DEPARTAMENTO', label: '🗺️ Departamento', icon: '🗺️' },
+            { key: 'REGIONAL', label: '🏢 Regional', icon: '🏢' },
+            { key: 'COLEGIO', label: '🏫 Colegio', icon: '🏫' }
+        ];
+
+        academicFields.forEach(field => {
+            const value = data[field.key] || 'N/A';
+            const hasError = errors.some((error: string) => error.includes(field.label.replace(/[🎓📅🔢🏙️🗺️🏢🏫]/g, '').trim()));
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Información Adicional
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-warning text-dark"><strong>ℹ️ Información Adicional</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const additionalFields = [
+            { key: 'CODIGO_INSCRIPCION', label: '🎫 Código de Inscripción', icon: '🎫' },
+            { key: 'FECHA_INSCRIPCION', label: '📅 Fecha de Inscripción', icon: '📅' },
+            { key: 'ESTADO', label: '📊 Estado', icon: '📊' },
+            { key: 'ESTRATO', label: '🏘️ Estrato', icon: '🏘️' },
+            { key: 'GRUP_MINO', label: '👥 Grupo Minoritario', icon: '👥' },
+            { key: 'TIPO_MEDIO', label: '📺 Tipo de Medio', icon: '📺' },
+            { key: 'COMPLEMENTARIA_1', label: '📝 Info Complementaria 1', icon: '📝' },
+            { key: 'COMPLEMENTARIA_2', label: '📝 Info Complementaria 2', icon: '📝' }
+        ];
+
+        additionalFields.forEach(field => {
+            const value = data[field.key] || 'N/A';
+            const hasError = errors.some((error: string) => error.includes(field.label.replace(/[🎫📅📊🏘️👥📺📝]/g, '').trim()));
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // IDs del Sistema
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-secondary text-white"><strong>🔑 IDs del Sistema</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const systemFields = [
+            { key: 'PKEYHOJAVIDA', label: '🔑 ID Hoja de Vida', icon: '🔑' },
+            { key: 'PKEYASPIRANT', label: '🔑 ID Aspirante', icon: '🔑' }
+        ];
+
+        systemFields.forEach(field => {
+            const value = data[field.key] || 'N/A';
+            const hasError = errors.some((error: string) => error.includes(field.label.replace(/[🔑]/g, '').trim()));
+            const colorClass = hasError ? 'text-danger fw-bold' : 'text-dark';
+            const bgClass = hasError ? 'bg-danger bg-opacity-10' : '';
+
+            html += `<div class="col-md-6 mb-2 p-2 ${bgClass}" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="${colorClass}" style="font-size: 1.1em; font-family: monospace;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Errores (si los hay)
         if (errors.length > 0) {
-            html += '<hr><h6 class="text-danger">Errores encontrados:</h6>';
-            html += '<ul class="text-danger">';
+            html += '<div class="card border-danger">';
+            html += '<div class="card-header bg-danger text-white"><strong>❌ Errores Encontrados</strong></div>';
+            html += '<div class="card-body">';
+            html += '<div class="alert alert-danger">';
+            html += '<ul class="mb-0">';
             errors.forEach((error: string) => {
-                html += `<li>${error}</li>`;
+                html += `<li class="mb-1"><strong>⚠️ ${error}</strong></li>`;
             });
             html += '</ul>';
+            html += '</div></div></div>';
         }
 
         html += '</div>';
 
         Swal.fire({
-            title: item.isValid ? 'Registro Válido' : 'Registro con Errores',
+            title: item.isValid ? '✅ Registro Válido' : '❌ Registro con Errores',
             html: html,
             icon: item.isValid ? 'success' : 'error',
-            width: '800px',
-            confirmButtonText: 'Cerrar'
+            width: '900px',
+            showCloseButton: true,
+            confirmButtonText: 'Cerrar',
+            customClass: {
+                popup: 'swal-wide'
+            }
         });
     }
 
@@ -632,60 +862,157 @@ export class HojaVida {
 
     // Ver detalle completo de una hoja de vida
     verDetalleHoja(hoja: any): void {
-        const html = `
-            <div class="text-start">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-primary">Información Personal</h6>
-                        <p><strong>Documento:</strong> ${hoja.DOCUMENTO || 'N/A'}</p>
-                        <p><strong>Nombre:</strong> ${hoja.NOMBRE || 'N/A'} ${hoja.PRIMER_APELLIDO || ''} ${hoja.SEGUNDO_APELLIDO || ''}</p>
-                        <p><strong>Edad:</strong> ${hoja.EDAD || 'N/A'}</p>
-                        <p><strong>Género:</strong> ${hoja.GENERO || 'N/A'}</p>
-                        <p><strong>Fecha Nacimiento:</strong> ${hoja.FECH_NACIMIENTO || 'N/A'}</p>
-                        
-                        <h6 class="text-primary mt-3">Contacto</h6>
-                        <p><strong>Correo:</strong> ${hoja.CORREO || 'N/A'}</p>
-                        <p><strong>Teléfono:</strong> ${hoja.TELEFONO || 'N/A'}</p>
-                        <p><strong>Celular:</strong> ${hoja.CELULAR || 'N/A'}</p>
-                        <p><strong>Dirección:</strong> ${hoja.DIRECCION || 'N/A'}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-primary">Información Académica</h6>
-                        <p><strong>Código Programa:</strong> ${hoja.CODIPROGACAD || 'N/A'}</p>
-                        <p><strong>Año Período:</strong> ${hoja.ANNOPERIACAD || 'N/A'}</p>
-                        <p><strong>Número Período:</strong> ${hoja.NUMEPERIACAD || 'N/A'}</p>
-                        <p><strong>Código Inscripción:</strong> ${hoja.CODIGO_INSCRIPCION || 'N/A'}</p>
-                        <p><strong>Colegio:</strong> ${hoja.COLEGIO || 'N/A'}</p>
-                        
-                        <h6 class="text-primary mt-3">Ubicación y Estado</h6>
-                        <p><strong>Ciudad:</strong> ${hoja.CIUDAD || 'N/A'}</p>
-                        <p><strong>Departamento:</strong> ${hoja.DEPARTAMENTO || 'N/A'}</p>
-                        <p><strong>Regional:</strong> ${hoja.REGIONAL || 'N/A'}</p>
-                        <p><strong>Estado:</strong> <span class="badge ${hoja.ESTADO === 'ACTIVO' ? 'bg-success' : hoja.ESTADO === 'PENDIENTE' ? 'bg-warning' : 'bg-danger'}">${hoja.ESTADO || 'N/A'}</span></p>
-                        <p><strong>Estrato:</strong> ${hoja.ESTRATO || 'N/A'}</p>
-                    </div>
-                </div>
-                
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-primary">Información Adicional</h6>
-                        <p><strong>Grupo Minoritario:</strong> ${hoja.GRUP_MINO || 'N/A'}</p>
-                        <p><strong>Tipo Medio:</strong> ${hoja.TIPO_MEDIO || 'N/A'}</p>
-                        <p><strong>Complementaria 1:</strong> ${hoja.COMPLEMENTARIA_1 || 'N/A'}</p>
-                        <p><strong>Complementaria 2:</strong> ${hoja.COMPLEMENTARIA_2 || 'N/A'}</p>
-                        <p><strong>Fecha Inscripción:</strong> ${hoja.FECHA_INSCRIPCION || 'N/A'}</p>
-                        <p><strong>Fecha Creación:</strong> ${this.formatearFecha(hoja.createdAt)}</p>
-                        <p><strong>Última Actualización:</strong> ${this.formatearFecha(hoja.updatedAt)}</p>
-                    </div>
-                </div>
-            </div>
-        `;
+        let html = '<div class="text-start">';
+        
+        // Header con estado
+        html += `<div class="d-flex justify-content-between align-items-center mb-3">`;
+        html += `<h4 class="text-primary mb-0">Detalle de Hoja de Vida</h4>`;
+        const statusBadge = hoja.ESTADO === 'ACTIVO' ? 
+            '<span class="badge bg-success">✓ Activo</span>' : 
+            hoja.ESTADO === 'PENDIENTE' ? 
+            '<span class="badge bg-warning">⏳ Pendiente</span>' :
+            '<span class="badge bg-danger">✗ Inactivo</span>';
+        html += statusBadge;
+        html += `</div>`;
+
+        // Información Personal
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-primary text-white"><strong>📋 Información Personal</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const personalFields = [
+            { key: 'DOCUMENTO', label: '🆔 Documento', icon: '🆔' },
+            { key: 'NOMBRE', label: '👤 Nombre', icon: '👤' },
+            { key: 'PRIMER_APELLIDO', label: '👤 Primer Apellido', icon: '👤' },
+            { key: 'SEGUNDO_APELLIDO', label: '👤 Segundo Apellido', icon: '👤' },
+            { key: 'EDAD', label: '🎂 Edad', icon: '🎂' },
+            { key: 'GENERO', label: '⚧ Género', icon: '⚧' },
+            { key: 'FECH_NACIMIENTO', label: '📅 Fecha de Nacimiento', icon: '📅' }
+        ];
+
+        personalFields.forEach(field => {
+            const value = hoja[field.key] || 'N/A';
+            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Información de Contacto
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-info text-white"><strong>📞 Información de Contacto</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const contactFields = [
+            { key: 'CORREO', label: '📧 Correo Electrónico', icon: '📧' },
+            { key: 'TELEFONO', label: '📞 Teléfono', icon: '📞' },
+            { key: 'CELULAR', label: '📱 Celular', icon: '📱' },
+            { key: 'DIRECCION', label: '🏠 Dirección', icon: '🏠' }
+        ];
+
+        contactFields.forEach(field => {
+            const value = hoja[field.key] || 'N/A';
+            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Información Académica y Ubicación
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-success text-white"><strong>🎓 Información Académica y Ubicación</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const academicFields = [
+            { key: 'CODIPROGACAD', label: '🎓 Programa Académico', icon: '🎓' },
+            { key: 'ANNOPERIACAD', label: '📅 Año Período Académico', icon: '📅' },
+            { key: 'NUMEPERIACAD', label: '🔢 Número Período Académico', icon: '🔢' },
+            { key: 'CIUDAD', label: '🏙️ Ciudad', icon: '🏙️' },
+            { key: 'DEPARTAMENTO', label: '🗺️ Departamento', icon: '🗺️' },
+            { key: 'REGIONAL', label: '🏢 Regional', icon: '🏢' },
+            { key: 'COLEGIO', label: '🏫 Colegio', icon: '🏫' }
+        ];
+
+        academicFields.forEach(field => {
+            const value = hoja[field.key] || 'N/A';
+            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // Información Adicional
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-warning text-dark"><strong>ℹ️ Información Adicional</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const additionalFields = [
+            { key: 'CODIGO_INSCRIPCION', label: '🎫 Código de Inscripción', icon: '🎫' },
+            { key: 'FECHA_INSCRIPCION', label: '📅 Fecha de Inscripción', icon: '📅' },
+            { key: 'ESTADO', label: '📊 Estado', icon: '📊' },
+            { key: 'ESTRATO', label: '🏘️ Estrato', icon: '🏘️' },
+            { key: 'GRUP_MINO', label: '👥 Grupo Minoritario', icon: '👥' },
+            { key: 'TIPO_MEDIO', label: '📺 Tipo de Medio', icon: '📺' },
+            { key: 'COMPLEMENTARIA_1', label: '📝 Info Complementaria 1', icon: '📝' },
+            { key: 'COMPLEMENTARIA_2', label: '📝 Info Complementaria 2', icon: '📝' }
+        ];
+
+        additionalFields.forEach(field => {
+            let value = hoja[field.key] || 'N/A';
+            if (field.key === 'ESTADO') {
+                const badgeClass = value === 'ACTIVO' ? 'bg-success' : value === 'PENDIENTE' ? 'bg-warning' : 'bg-danger';
+                value = `<span class="badge ${badgeClass}">${value}</span>`;
+            }
+            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+
+        // IDs del Sistema y Fechas
+        html += '<div class="card mb-3 shadow">';
+        html += '<div class="card-header bg-secondary text-white"><strong>🔑 Información del Sistema</strong></div>';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+        
+        const systemFields = [
+            { key: 'PKEYHOJAVIDA', label: '🔑 ID Hoja de Vida', icon: '🔑' },
+            { key: 'PKEYASPIRANT', label: '🔑 ID Aspirante', icon: '🔑' },
+            { key: 'createdAt', label: '📅 Fecha de Creación', icon: '📅', isDate: true },
+            { key: 'updatedAt', label: '📅 Última Actualización', icon: '📅', isDate: true }
+        ];
+
+        systemFields.forEach(field => {
+            let value = hoja[field.key] || 'N/A';
+            if (field.isDate && value !== 'N/A') {
+                value = this.formatearFecha(value);
+            }
+            html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+            html += `<strong class="text-muted">${field.label}:</strong><br>`;
+            html += `<span class="text-dark" style="font-size: 1.1em;">${value}</span>`;
+            html += `</div>`;
+        });
+        
+        html += '</div></div></div>';
+        html += '</div>';
 
         Swal.fire({
-            title: `Detalle de Hoja de Vida - ${hoja.NOMBRE} ${hoja.PRIMER_APELLIDO}`,
+            title: `${hoja.NOMBRE} ${hoja.PRIMER_APELLIDO} ${hoja.SEGUNDO_APELLIDO || ''}`,
             html: html,
             icon: 'info',
-            width: '900px',
+            width: '1000px',
             confirmButtonText: 'Cerrar',
             customClass: {
                 popup: 'text-start'
