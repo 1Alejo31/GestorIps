@@ -20,6 +20,10 @@ export class Aside {
         this.selectPanel.emit('registroUsuarios');
     }
 
+    openRegistroIps() {
+        this.selectPanel.emit('registroIps');
+    }
+
     openHojaVida() {
         this.selectPanel.emit('hojaVida');
     }

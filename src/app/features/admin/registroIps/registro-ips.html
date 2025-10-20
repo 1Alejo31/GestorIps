@@ -1,0 +1,271 @@
+<div class="container-fluid p-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header" style="background-color: #69B5D4; color: #fff;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-hospital me-2"></i>
+                        <h4 class="mb-0">Registro de IPS</h4>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Información Básica
+                                </h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="NOMBRE_IPS" class="form-label">
+                                    Nombre de la IPS <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="NOMBRE_IPS" formControlName="NOMBRE_IPS" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('NOMBRE_IPS')"
+                                    placeholder="Ej: Hospital San Juan de Dios">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('NOMBRE_IPS') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="NIT" class="form-label">
+                                    NIT <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="NIT" formControlName="NIT" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('NIT')" placeholder="Ej: 900123456-7">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('NIT') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="REPRESENTANTE" class="form-label">
+                                    Representante Legal <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="REPRESENTANTE" formControlName="REPRESENTANTE"
+                                    class="form-control" [class.is-invalid]="isFieldInvalid('REPRESENTANTE')"
+                                    placeholder="Ej: Dr. Carlos Mendoza">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('REPRESENTANTE') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="ESTADO" class="form-label">
+                                    Estado <span class="text-danger">*</span>
+                                </label>
+                                <select id="ESTADO" formControlName="ESTADO" class="form-select"
+                                    [class.is-invalid]="isFieldInvalid('ESTADO')">
+                                    <option *ngFor="let estado of estados" [value]="estado">
+                                        {{ estado }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('ESTADO') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-address-book me-2"></i>Información de Contacto
+                                </h5>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label for="DIRECCION" class="form-label">
+                                    Dirección <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="DIRECCION" formControlName="DIRECCION" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('DIRECCION')" placeholder="Ej: Calle 45 #23-67">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('DIRECCION') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="TELEFONO" class="form-label">
+                                    Teléfono <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="TELEFONO" formControlName="TELEFONO" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('TELEFONO')" placeholder="Ej: 601-2345678">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('TELEFONO') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="CORREO" class="form-label">
+                                    Correo Electrónico <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" id="CORREO" formControlName="CORREO" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('CORREO')"
+                                    placeholder="Ej: contacto@hospitalsanjuan.com">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('CORREO') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ubicación -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación
+                                </h5>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="DEPARTAMENTO" class="form-label">
+                                    Departamento <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="DEPARTAMENTO" formControlName="DEPARTAMENTO" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('DEPARTAMENTO')"
+                                    placeholder="Ingrese el departamento">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('DEPARTAMENTO') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="CIUDAD" class="form-label">
+                                    Ciudad <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="CIUDAD" formControlName="CIUDAD" class="form-control"
+                                    [class.is-invalid]="isFieldInvalid('CIUDAD')"
+                                    placeholder="Ingrese la ciudad">
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('CIUDAD') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="REGIONAL" class="form-label">
+                                    Regional <span class="text-danger">*</span>
+                                </label>
+                                <select id="REGIONAL" formControlName="REGIONAL" class="form-select"
+                                    [class.is-invalid]="isFieldInvalid('REGIONAL')">
+                                    <option value="">Seleccione regional</option>
+                                    <option *ngFor="let regional of regionales" [value]="regional">
+                                        {{ regional }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('REGIONAL') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-stethoscope me-2"></i>Información de Atención
+                                </h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo_atencion" class="form-label">
+                                    Tipo de Atención <span class="text-danger">*</span>
+                                </label>
+                                <select id="tipo_atencion" formControlName="tipo_atencion" class="form-select"
+                                    [class.is-invalid]="isFieldInvalid('tipo_atencion')">
+                                    <option value="">Seleccione tipo de atención</option>
+                                    <option *ngFor="let tipo of tiposAtencion" [value]="tipo">
+                                        {{ tipo }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('tipo_atencion') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    Especialidades <span class="text-danger">*</span>
+                                </label>
+                                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                    <div class="row">
+                                        <div class="col-md-6" *ngFor="let especialidad of especialidades">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    [id]="'esp_' + especialidad"
+                                                    [checked]="isEspecialidadSelected(especialidad)"
+                                                    (change)="onEspecialidadChange(especialidad, $event)">
+                                                <label class="form-check-label" [for]="'esp_' + especialidad">
+                                                    {{ especialidad }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="fas fa-clock me-2"></i>Información Operativa
+                                </h5>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="horario_atencion" class="form-label">
+                                    Horario de Atención <span class="text-danger">*</span>
+                                </label>
+                                <select id="horario_atencion" formControlName="horario_atencion" class="form-select"
+                                    [class.is-invalid]="isFieldInvalid('horario_atencion')">
+                                    <option value="">Seleccione horario</option>
+                                    <option *ngFor="let horario of horariosAtencion" [value]="horario">
+                                        {{ horario }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('horario_atencion') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="nivel_complejidad" class="form-label">
+                                    Nivel de Complejidad <span class="text-danger">*</span>
+                                </label>
+                                <select id="nivel_complejidad" formControlName="nivel_complejidad" class="form-select"
+                                    [class.is-invalid]="isFieldInvalid('nivel_complejidad')">
+                                    <option value="">Seleccione nivel</option>
+                                    <option *ngFor="let nivel of nivelesComplejidad" [value]="nivel">
+                                        Nivel {{ nivel }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    {{ getFieldError('nivel_complejidad') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" (click)="resetForm()"
+                                        [disabled]="isLoading">
+                                        <i class="fas fa-undo me-1"></i>
+                                        Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-outline-success" [disabled]="isLoading">
+                                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                                        <i *ngIf="!isLoading" class="fas fa-save me-1"></i>
+                                        {{ isLoading ? 'Registrando...' : 'Registrar IPS' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
