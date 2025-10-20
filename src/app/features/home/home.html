@@ -72,13 +72,9 @@
                                         <i class="fas fa-user-plus me-2"></i>
                                         Registrar Usuario
                                     </button>
-                                    <button class="btn btn-outline-success btn-sm" (click)="activatePanel('registroIps')" *ngIf="hasPermiso('Escritura')">
-                                        <i class="fas fa-hospital me-2"></i>
-                                        Registrar IPS
-                                    </button>
-                                    <button class="btn btn-outline-info btn-sm" (click)="checkAuthStatus()">
-                                        <i class="fas fa-shield-alt me-2"></i>
-                                        Verificar Sesión
+                                    <button class="btn btn-outline-warning btn-sm" (click)="activatePanel('gestorIps')">
+                                        <i class="fas fa-hospital-user me-2"></i>
+                                        Gestionar IPS
                                     </button>
                                 </div>
                             </div>
@@ -91,8 +87,8 @@
         <!-- Panel Formulario de Registro de Usuarios -->
         <app-registro-usuarios *ngIf="activePanel === 'registroUsuarios'"></app-registro-usuarios>
 
-        <!-- Panel Formulario de Registro de IPS -->
-        <app-registro-ips *ngIf="activePanel === 'registroIps'"></app-registro-ips>
+        <!-- Panel Gestor de IPS -->
+        <app-gestor-ips *ngIf="activePanel === 'gestorIps'"></app-gestor-ips>
 
         <!-- Panel Formulario de Hoja de Vida -->
         <app-hoja-vida *ngIf="activePanel === 'hojaVida'"></app-hoja-vida>

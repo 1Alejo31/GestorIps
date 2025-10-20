@@ -6,26 +6,28 @@ import { catchError } from 'rxjs/operators';
 @Injectable({
     providedIn: 'root'
 })
-export class RegistroIpsService {
-    private apiUrl = 'http://localhost:3000/api/ips/crearIps';
+export class GestorIpsService {
+    private apiUrl = 'http://localhost:3000/api/ips/consultar';
 
     constructor(private http: HttpClient) { }
 
-    registrarIps(ipsData: any): Observable<any> {
+    consultarIps(): Observable<any> {
         const token = localStorage.getItem('token') ?? '';
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
         });
         
-        return this.http.post<any>(this.apiUrl, ipsData, { headers }).pipe(
+        return this.http.get<any>(this.apiUrl, { headers }).pipe(
             catchError((error: HttpErrorResponse) => {
+                // Si el error tiene un cuerpo de respuesta JSON válido, lo retornamos como éxito
                 if (error.error && typeof error.error === 'object' && error.error.hasOwnProperty('error')) {
                     return new Observable(observer => {
                         observer.next(error.error);
                         observer.complete();
                     });
                 }
+                // Si no es un error estructurado del servidor, lo tratamos como error de conexión
                 return throwError(() => error);
             })
         );
