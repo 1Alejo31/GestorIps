@@ -24,6 +24,10 @@ export class Aside {
         this.selectPanel.emit('gestorIps');
     }
 
+    openIpsGestion() {
+        this.selectPanel.emit('ipsGestion');
+    }
+
     openHojaVida() {
         this.selectPanel.emit('hojaVida');
     }

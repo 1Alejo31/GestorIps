@@ -2,19 +2,19 @@
     <!-- Pestañas para alternar entre formulario individual, carga masiva y consulta -->
     <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button style="color: #69B5D4" class="nav-link" [class.active]="activeTab === 'individual'"
+            <button class="nav-link" [class.active]="activeTab === 'individual'"
                 (click)="setActiveTab('individual')" type="button">
                 <i class="fas fa-user"></i> Registro Individual
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button style="color: #69B5D4" class="nav-link" [class.active]="activeTab === 'masivo'"
+            <button class="nav-link" [class.active]="activeTab === 'masivo'"
                 (click)="setActiveTab('masivo')" type="button">
                 <i class="fas fa-file-excel"></i> Carga Masiva
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button style="color: #69B5D4" class="nav-link" [class.active]="activeTab === 'consulta'"
+            <button class="nav-link" [class.active]="activeTab === 'consulta'"
                 (click)="setActiveTab('consulta')" type="button">
                 <i class="fas fa-search"></i> Consultar Hojas de Vida
             </button>

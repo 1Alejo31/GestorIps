@@ -74,6 +74,8 @@ export class Login {
         localStorage.setItem('token', res.response.token);
 
         const user = {
+          id: res.response.id,
+          ips_id: res.response.ips_id,
           perfil: res.response.perfil,
           empresa: res.response.empresa,
           nombre: res.response.nombre,

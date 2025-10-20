@@ -20,6 +20,12 @@
             <span class="text" style="font-size: 1.0rem; text-transform: uppercase;">AdminIPS</span>
         </a>
 
+        <a class="menu-item d-grid" [class.active]="activePanel === 'ipsGestion'"
+            (click)="openIpsGestion()">
+            <span class="icon">📅</span>
+            <span class="text" style="font-size: 1.0rem; text-transform: uppercase;">IPS Gestión</span>
+        </a>
+
         <a class="menu-item d-grid" [class.active]="activePanel === 'hojaVida'" (click)="openHojaVida()">
             <span class="icon">📋</span>
             <span class="text" style="font-size: 1.0rem; text-transform: uppercase;">Gestor Hoja de Vida</span>

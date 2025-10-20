@@ -107,7 +107,7 @@ export class GestorIps implements OnInit {
     setActiveTab(tab: string) {
         this.activeTab = tab;
         if (tab === 'consulta') {
-            this.consultarIps();
+            this.consultarIps(false); // No mostrar popup al cambiar de tab
         }
     }
 
@@ -186,8 +186,7 @@ export class GestorIps implements OnInit {
                         confirmButtonText: 'Continuar'
                     }).then(() => {
                         this.resetForm();
-                        // Actualizar la lista de IPS después del registro
-                        this.consultarIps();
+                        this.consultarIps(true);
                     });
                 } else {
                     Swal.fire({
@@ -250,7 +249,7 @@ export class GestorIps implements OnInit {
         return '';
     }
 
-    consultarIps() {
+    consultarIps(showSuccessMessage: boolean = true) {
         this.isLoadingConsulta = true;
         this.gestorIpsService.consultarIps().subscribe({
             next: (response) => {
@@ -261,13 +260,16 @@ export class GestorIps implements OnInit {
                     this.totalItems = response.response.total || 0;
                     this.filtrarIps();
 
-                    Swal.fire({
-                        title: '¡Éxito!',
-                        text: response.response.mensaje || 'IPS consultadas exitosamente',
-                        icon: 'success',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                    // Solo mostrar popup de éxito si showSuccessMessage es true
+                    if (showSuccessMessage) {
+                        Swal.fire({
+                            title: '¡Éxito!',
+                            text: response.response.mensaje || 'IPS consultadas exitosamente',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
                 } else {
                     Swal.fire({
                         title: 'Información',

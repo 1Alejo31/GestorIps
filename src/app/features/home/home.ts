@@ -6,6 +6,7 @@ import { Topbar } from "../../shared/topbar/topbar";
 import { Aside } from "../../shared/aside/aside";
 import { RegistroUsuarios } from "../../features/admin/registroUsuarios/registro-usuarios";
 import { HojaVida } from "../../features/admin/HojaVida/hoja-vida";
+import { IpsGestion } from "../../features/admin/ipsGestion/ips-gestion";
 import Swal from 'sweetalert2';
 import { GestorIps } from "../../features/admin/gestorIps/gestor-ips";
 
@@ -24,7 +25,7 @@ interface User {
 @Component({
     selector: 'app-home',
     standalone: true,
-    imports: [CommonModule, Topbar, Aside, RegistroUsuarios, GestorIps, HojaVida],
+    imports: [CommonModule, Topbar, Aside, RegistroUsuarios, GestorIps, HojaVida, IpsGestion],
     templateUrl: './home.html',
     styleUrls: ['./home.css'],
 })
@@ -79,10 +80,10 @@ export class Home implements OnInit, OnDestroy {
         this.isSidebarCollapsed = !this.isSidebarCollapsed;
     }
 
-    activePanel: 'dashboard' | 'registroUsuarios' | 'gestorIps' | 'hojaVida' = 'dashboard';
+    activePanel: 'dashboard' | 'registroUsuarios' | 'gestorIps' | 'hojaVida' | 'ipsGestion' = 'dashboard';
 
     activatePanel(panel: string) {
-        if (panel === 'dashboard' || panel === 'registroUsuarios' || panel === 'gestorIps' || panel === 'hojaVida') {
+        if (panel === 'dashboard' || panel === 'registroUsuarios' || panel === 'gestorIps' || panel === 'hojaVida' || panel === 'ipsGestion') {
             this.activePanel = panel;
         }
     }

@@ -1,0 +1,179 @@
+<div class="container py-3">
+    <!-- Pestañas para alternar entre secciones -->
+    <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeTab === 'consulta'" (click)="setActiveTab('consulta')"
+                type="button">
+                <i class="fas fa-search"></i> Consultar Hojas de Vida
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <!-- Pestaña de Consulta de Hojas de Vida -->
+        @if (activeTab === 'consulta') {
+        <div class="tab-pane fade" [class.show]="activeTab === 'consulta'" [class.active]="activeTab === 'consulta'">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Gestión de Hojas de Vida
+                    </h5>
+                    <button class="btn btn-success btn-sm" (click)="exportarExcel()"
+                        [disabled]="hojasVidaFiltradas.length === 0">
+                        <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                    </button>
+                </div>
+                <div class="card-body">
+                    <!-- Barra de búsqueda -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control"
+                                    placeholder="Buscar por nombre, documento, correo, ciudad..."
+                                    [(ngModel)]="searchTerm" (input)="onSearchChange()">
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-primary" (click)="consultarHojasVida()"
+                                [disabled]="isLoadingConsulta" >
+                                <i class="fas fa-sync-alt me-1" [class.fa-spin]="isLoadingConsulta"></i>
+                                {{ isLoadingConsulta ? 'Consultando...' : 'Actualizar' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading -->
+                    @if (isLoadingConsulta) {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Consultando hojas de vida...</p>
+                    </div>
+                    }
+
+                    <!-- Tabla de resultados -->
+                    @if (!isLoadingConsulta && hojasVidaFiltradas.length > 0) {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Nombre Completo</th>
+                                    <th>Edad</th>
+                                    <th>Género</th>
+                                    <th>Correo</th>
+                                    <th>Teléfono</th>
+                                    <th>Ciudad</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (hoja of paginatedHojasVida; track hoja._id) {
+                                <tr>
+                                    <td>{{ hoja.DOCUMENTO }}</td>
+                                    <td>{{ hoja.NOMBRE }} {{ hoja.PRIMER_APELLIDO }} {{ hoja.SEGUNDO_APELLIDO }}</td>
+                                    <td>{{ hoja.EDAD }}</td>
+                                    <td>{{ hoja.GENERO }}</td>
+                                    <td>{{ hoja.CORREO }}</td>
+                                    <td>{{ hoja.TELEFONO }}</td>
+                                    <td>{{ hoja.CIUDAD }}</td>
+                                    <td>
+                                        <span class="badge bg bg-success" [class]="getEstadoBadgeClass(hoja.ESTADO)">
+                                            <span class="me-1">●</span>
+                                            <span class="d-none d-sm-inline">{{ hoja.ESTADO }}</span>
+                                            <span class="d-sm-none">{{ hoja.ESTADO.substring(0, 3) }}</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button"
+                                                class="btn btn-outline-info btn-sm btn-action btn-ver-detalle"
+                                                (click)="verDetalle(hoja)" title="Ver Detalle">
+                                                <i class="bi bi-eye"></i> Ver
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-outline-success btn-sm btn-action btn-agendar"
+                                                (click)="agendar(hoja)" title="Agendar Cita">
+                                                <i class="fas fa-calendar-plus"></i> Agendar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    @if (totalPages > 1) {
+                    <nav aria-label="Paginación de hojas de vida">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" [class.disabled]="currentPage === 1">
+                                <button class="page-link" (click)="changePage(currentPage - 1)"
+                                    [disabled]="currentPage === 1">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                            </li>
+                            @for (page of [].constructor(totalPages); track $index) {
+                            <li class="page-item" [class.active]="currentPage === $index + 1">
+                                <button class="page-link" (click)="changePage($index + 1)">
+                                    {{ $index + 1 }}
+                                </button>
+                            </li>
+                            }
+                            <li class="page-item" [class.disabled]="currentPage === totalPages">
+                                <button class="page-link" (click)="changePage(currentPage + 1)"
+                                    [disabled]="currentPage === totalPages">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                    }
+
+                    <!-- Información de resultados -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} a
+                                {{ Math.min(currentPage * itemsPerPage, hojasVidaFiltradas.length) }}
+                                de {{ hojasVidaFiltradas.length }} registros
+                                @if (searchTerm) {
+                                (filtrados de {{ totalItems }} total)
+                                }
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                Página {{ currentPage }} de {{ totalPages }}
+                            </small>
+                        </div>
+                    </div>
+                    }
+
+                    <!-- Sin resultados -->
+                    @if (!isLoadingConsulta && hojasVidaFiltradas.length === 0) {
+                    <div class="text-center py-4">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No se encontraron hojas de vida</h5>
+                        @if (searchTerm) {
+                        <p class="text-muted">
+                            No hay resultados para "<strong>{{ searchTerm }}</strong>"
+                        </p>
+                        <button class="btn btn-outline-secondary" (click)="searchTerm = ''; onSearchChange()">
+                            Limpiar búsqueda
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
