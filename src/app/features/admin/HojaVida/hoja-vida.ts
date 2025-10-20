@@ -1066,5 +1066,4 @@ export class HojaVida {
         });
     }
 
-
 }
