@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RegisterService } from '../../admin/registroUsuarios/registro.service';
@@ -11,14 +11,15 @@ import Swal from 'sweetalert2';
     templateUrl: './registro-usuarios.html',
     styleUrls: ['./registro-usuarios.css']
 })
-export class RegistroUsuarios {
+export class RegistroUsuarios implements OnInit {
     form: FormGroup;
     submitted = false;
+    cargandoIps = false;
 
     tiposDocumento = ['CC', 'CE', 'TI', 'PA'];
-    perfiles = ['Administrador', 'Usuario', 'Supervisor'];
+    perfiles = ['Administrador', 'Supervisor', 'Usuario', 'Cliente'];
     estados = ['Activo', 'Inactivo', 'Suspendido'];
-    empresas = ['Aguisu', 'Empresa X', 'Empresa Y'];
+    ips: any[] = [];
 
     departamentos = ['Cundinamarca', 'Antioquia', 'Valle del Cauca', 'Santander'];
     ciudades = ['Bogotá', 'Medellín', 'Cali', 'Bucaramanga'];
@@ -51,6 +52,35 @@ export class RegistroUsuarios {
 
         this.form.get('peDocumento')?.valueChanges.subscribe(val => {
             this.form.get('crPassword')?.setValue(val ?? '', { emitEvent: false });
+        });
+    }
+
+    ngOnInit(): void {
+        this.cargarIps();
+    }
+
+    cargarIps(): void {
+        this.registerService.consultarIps().subscribe({
+            next: (response) => {
+                if (response?.error === 0 && response?.response?.ips) {
+                    this.ips = response.response.ips;
+                } else {
+                    console.error('Error al cargar IPS:', response?.response?.mensaje);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Advertencia',
+                        text: 'No se pudieron cargar las IPS disponibles'
+                    });
+                }
+            },
+            error: (error) => {
+                console.error('Error al consultar IPS:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al cargar las IPS disponibles'
+                });
+            }
         });
     }
 

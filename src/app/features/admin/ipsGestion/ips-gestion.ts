@@ -43,6 +43,7 @@ interface HojaVida {
     RECOMENDACIONES?: string;
     USUARIO_ID?: string;
     NOMBREIPS?: string;
+    PDF_URL?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -336,6 +337,28 @@ export class IpsGestion implements OnInit {
             html += '</div></div></div>';
         }
 
+        // Sección de PDF (solo para casos EN GESTION)
+        if (hoja.ESTADO?.toLowerCase() === 'en gestion' && hoja.PDF_URL) {
+            html += '<div class="card mb-3">';
+            html += '<div class="card-header bg-info text-white">';
+            html += '<h6 class="mb-0"><i class="fas fa-file-pdf me-2"></i>Documento PDF</h6>';
+            html += '</div>';
+            html += '<div class="card-body text-center">';
+            
+            // Extraer el nombre del archivo de la URL
+            const filename = hoja.PDF_URL.split('/').pop();
+            
+            html += `<div class="mb-3">`;
+            html += `<i class="fas fa-file-pdf text-danger" style="font-size: 3rem;"></i>`;
+            html += `<p class="mt-2 mb-3"><strong>Archivo PDF disponible`;
+            html += `<button type="button" class="btn btn-primary" onclick="window.open('data:application/pdf;base64,', '_blank')" id="verPdfBtn">`;
+            html += `<i class="fas fa-eye me-2"></i>Ver PDF`;
+            html += `</button>`;
+            html += `</div>`;
+            
+            html += '</div></div>';
+        }
+
         html += '</div>';
 
         Swal.fire({
@@ -347,6 +370,15 @@ export class IpsGestion implements OnInit {
             confirmButtonText: 'Cerrar',
             customClass: {
                 popup: 'swal-wide'
+            },
+            didOpen: () => {
+                // Si hay PDF y el estado es EN GESTION, configurar el botón
+                if (hoja.ESTADO?.toLowerCase() === 'en gestion' && hoja.PDF_URL) {
+                    const verPdfBtn = document.getElementById('verPdfBtn');
+                    if (verPdfBtn) {
+                        verPdfBtn.onclick = () => this.verPDF(hoja.PDF_URL!);
+                    }
+                }
             }
         });
     }
@@ -441,7 +473,7 @@ export class IpsGestion implements OnInit {
         // Verificar si tenemos los IDs necesarios
         if (!userInfo?.id || !userInfo?.ips_id) {
             console.warn('⚠️ ADVERTENCIA: Faltan ID de usuario o IPS. Es necesario hacer logout y login nuevamente.');
-            
+
             Swal.fire({
                 title: 'Información Incompleta',
                 text: 'Para completar el agendamiento, es necesario cerrar sesión y volver a iniciar sesión.',
@@ -557,11 +589,11 @@ export class IpsGestion implements OnInit {
 
     consultarCasosTomados() {
         this.isLoadingCasos = true;
-        
+
         // Obtener el ips_id del usuario logueado
         const userInfo = this.authService.getUserInfo();
         const ipsId = userInfo?.ips_id;
-        
+
         if (!ipsId) {
             Swal.fire({
                 title: 'Error',
@@ -690,22 +722,22 @@ export class IpsGestion implements OnInit {
             preConfirm: () => {
                 const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
                 const file = fileInput?.files?.[0];
-                
+
                 if (!file) {
                     Swal.showValidationMessage('Por favor seleccione un archivo PDF');
                     return false;
                 }
-                
+
                 if (file.type !== 'application/pdf') {
                     Swal.showValidationMessage('El archivo debe ser un PDF');
                     return false;
                 }
-                
-                if (file.size > 10 * 1024 * 1024) { // 10MB
-                    Swal.showValidationMessage('El archivo no debe superar los 10MB');
+
+                if (file.size > 40 * 1024 * 1024) { // 40MB
+                    Swal.showValidationMessage('El archivo no debe superar los 40MB');
                     return false;
                 }
-                
+
                 return file;
             }
         }).then((result) => {
@@ -718,7 +750,16 @@ export class IpsGestion implements OnInit {
     onPdfFileSelected(event: any) {
         const file = event.target.files[0];
         if (file) {
+            console.log('📄 Archivo seleccionado:');
+            console.log('- Nombre:', file.name);
+            console.log('- Tipo:', file.type);
+            console.log('- Tamaño:', file.size, 'bytes');
+            console.log('- Tamaño en MB:', (file.size / (1024 * 1024)).toFixed(2), 'MB');
+            console.log('- Límite:', (10 * 1024 * 1024), 'bytes');
+            console.log('- ¿Supera límite?:', file.size > 10 * 1024 * 1024);
+
             if (file.type !== 'application/pdf') {
+                console.log('❌ Error: Tipo de archivo inválido');
                 Swal.fire({
                     title: 'Archivo Inválido',
                     text: 'Por favor seleccione un archivo PDF válido',
@@ -740,8 +781,9 @@ export class IpsGestion implements OnInit {
                 return;
             }
 
+            console.log('✅ Archivo válido, guardando...');
             this.selectedPdfFile = file;
-            
+
             // Crear URL para vista previa
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -752,7 +794,13 @@ export class IpsGestion implements OnInit {
     }
 
     guardarPDF() {
+        console.log('🚀 Iniciando guardarPDF...');
+        console.log('- Caso seleccionado:', this.selectedCaso?._id);
+        console.log('- Archivo seleccionado:', this.selectedPdfFile?.name);
+        console.log('- Tamaño del archivo:', this.selectedPdfFile?.size, 'bytes');
+
         if (!this.selectedCaso || !this.selectedPdfFile) {
+            console.log('❌ Error: Faltan datos');
             Swal.fire({
                 title: 'Error',
                 text: 'No hay caso o archivo seleccionado',
@@ -762,51 +810,62 @@ export class IpsGestion implements OnInit {
             return;
         }
 
+        console.log('✅ Datos válidos, procesando carga...');
         this.procesarCargaPDF(this.selectedCaso._id, this.selectedPdfFile);
     }
 
     private procesarCargaPDF(hojaVidaId: string, pdfFile: File) {
-        this.isLoadingPdf = true;
-
         this.ipsGestionService.cargarPDF(hojaVidaId, pdfFile).subscribe({
             next: (response) => {
                 this.isLoadingPdf = false;
-                
-                if (response?.error === 1) {
-                    Swal.fire({
-                        title: 'Error al Cargar PDF',
-                        text: response.response?.mensaje || 'Error desconocido del servidor',
-                        icon: 'error',
-                        confirmButtonText: 'Entendido'
-                    });
-                } else {
+
+                if (response?.error === 0) {
                     // Cerrar modal
-                    const modalElement = document.getElementById('pdfModal');
-                    if (modalElement) {
-                        const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-                        modal?.hide();
+                    try {
+                        const modalElement = document.getElementById('pdfModal');
+                        if (modalElement && (window as any).bootstrap && (window as any).bootstrap.Modal) {
+                            const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            }
+                        }
+                    } catch (error) {
+                        console.log('⚠️ No se pudo cerrar el modal automáticamente:', error);
                     }
-                    
+
                     Swal.fire({
                         title: '¡PDF Cargado Exitosamente!',
-                        text: 'El archivo PDF se ha guardado correctamente',
+                        html: `
+                            <div class="text-start">
+                                <p><strong>Mensaje:</strong> ${response.response?.mensaje || 'PDF almacenado correctamente'}</p>
+                                <p><strong>ID:</strong> ${response.response?.id || hojaVidaId}</p>
+                                <p><strong>URL:</strong> ${response.response?.url || 'Archivo guardado'}</p>
+                            </div>
+                        `,
                         icon: 'success',
                         confirmButtonText: 'Entendido'
                     });
-                    
+
                     // Limpiar datos del modal
                     this.selectedCaso = null;
                     this.selectedPdfFile = null;
                     this.pdfPreviewUrl = null;
-                    
+
                     // Limpiar el input de archivo
                     const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
                     if (fileInput) {
                         fileInput.value = '';
                     }
-                    
+
                     // Actualizar la lista de casos
                     this.consultarCasosTomados();
+                } else {
+                    Swal.fire({
+                        title: 'Error al Cargar PDF',
+                        text: response.response?.mensaje || response.mensaje || 'Error desconocido del servidor',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                 }
             },
             error: (error) => {
@@ -865,11 +924,15 @@ export class IpsGestion implements OnInit {
     getEstadoBadgeClass(estado: string): string {
         switch (estado?.toLowerCase()) {
             case 'activo':
+                return 'bg-warning';
+            case 'en gestion':
+                return 'bg-primary';
+            case 'gestionado':
                 return 'bg-success';
             case 'inactivo':
                 return 'bg-danger';
             case 'suspendido':
-                return 'bg-warning';
+                return 'bg-secondary';
             default:
                 return 'bg-secondary';
         }
@@ -880,7 +943,7 @@ export class IpsGestion implements OnInit {
         
         try {
             const fecha = new Date(fechaHora);
-            return fecha.toLocaleDateString('es-CO', {
+            return fecha.toLocaleString('es-CO', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
@@ -888,7 +951,88 @@ export class IpsGestion implements OnInit {
                 minute: '2-digit'
             });
         } catch (error) {
-            return 'Fecha inválida';
+            return fechaHora;
         }
+    }
+
+    verPDF(pdfUrl: string): void {
+        // Extraer el nombre del archivo de la URL
+        const filename = pdfUrl.split('/').pop();
+        
+        if (!filename) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo obtener el nombre del archivo PDF',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        // Mostrar loading
+        Swal.fire({
+            title: 'Cargando PDF...',
+            text: 'Por favor espere mientras se carga el documento',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Llamar al servicio para obtener el PDF
+        this.ipsGestionService.obtenerPDF(filename).subscribe({
+            next: (pdfBlob: Blob) => {
+                // Crear URL del blob
+                const pdfBlobUrl = URL.createObjectURL(pdfBlob);
+                
+                // Cerrar el loading y mostrar el PDF en modal dedicado
+                Swal.close();
+                
+                // Crear modal dedicado para el PDF
+                const pdfHtml = `
+                    <div style="width: 100%; height: 80vh; display: flex; flex-direction: column;">
+                        <div style="margin-bottom: 10px; text-align: center;">
+                            <strong style="color: #333;">${filename}</strong>
+                        </div>
+                        <iframe 
+                            src="${pdfBlobUrl}" 
+                            style="width: 100%; height: 100%; border: none; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"
+                            type="application/pdf">
+                            <p>Su navegador no soporta la visualización de PDFs. 
+                               <a href="${pdfBlobUrl}" target="_blank">Haga clic aquí para descargar el PDF</a>
+                            </p>
+                        </iframe>
+                    </div>
+                `;
+
+                Swal.fire({
+                    title: 'Visualizador de PDF',
+                    html: pdfHtml,
+                    width: '95%',
+                    heightAuto: false,
+                    showCloseButton: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#6c757d',
+                    customClass: {
+                        popup: 'swal-pdf-viewer',
+                        htmlContainer: 'swal-pdf-container'
+                    },
+                    willClose: () => {
+                        // Limpiar la URL del blob cuando se cierre el modal
+                        URL.revokeObjectURL(pdfBlobUrl);
+                    }
+                });
+            },
+            error: (error) => {
+                console.error('Error al obtener PDF:', error);
+                Swal.fire({
+                    title: 'Error al cargar PDF',
+                    text: 'No se pudo cargar el documento PDF. Verifique que el archivo existe.',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
     }
 }

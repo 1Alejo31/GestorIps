@@ -69,11 +69,9 @@
                                 <tr>
                                     <th>Documento</th>
                                     <th>Nombre Completo</th>
-                                    <th>Edad</th>
                                     <th>Género</th>
-                                    <th>Exámenes</th>
-                                    <th>Fecha/Hora</th>
-                                    <th>IPS</th>
+                                    <th>Correo</th>
+                                    <th>Telefono</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -83,11 +81,9 @@
                                 <tr>
                                     <td>{{ hoja.DOCUMENTO }}</td>
                                     <td>{{ hoja.NOMBRE }} {{ hoja.PRIMER_APELLIDO }} {{ hoja.SEGUNDO_APELLIDO }}</td>
-                                    <td>{{ hoja.EDAD }}</td>
                                     <td>{{ hoja.GENERO }}</td>
                                     <td>{{ hoja.CORREO }}</td>
                                     <td>{{ hoja.TELEFONO }}</td>
-                                    <td>{{ hoja.CIUDAD }}</td>
                                     <td>
                                         <span class="badge bg bg-success" [class]="getEstadoBadgeClass(hoja.ESTADO)">
                                             <span class="me-1">●</span>

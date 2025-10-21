@@ -63,19 +63,30 @@
                                 </h6>
                             </div>
                             <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary btn-sm" (click)="activatePanel('hojaVida')">
+                                <div class="d-grid gap-2" *ngIf="hasAnyPermission()">
+                                    <button *ngIf="canViewGestorHojaVida" class="btn btn-outline-primary btn-sm" (click)="activatePanel('hojaVida')">
                                         <i class="fas fa-file-alt me-2"></i>
                                         Gestionar Hojas de Vida
                                     </button>
-                                    <button class="btn btn-outline-secondary btn-sm" (click)="activatePanel('registroUsuarios')" *ngIf="hasPermiso('Escritura')">
+                                    <button *ngIf="canViewGestorUsuarios" class="btn btn-outline-secondary btn-sm" (click)="activatePanel('registroUsuarios')">
                                         <i class="fas fa-user-plus me-2"></i>
                                         Registrar Usuario
                                     </button>
-                                    <button class="btn btn-outline-warning btn-sm" (click)="activatePanel('gestorIps')">
+                                    <button *ngIf="canViewAdminIps" class="btn btn-outline-warning btn-sm" (click)="activatePanel('gestorIps')">
                                         <i class="fas fa-hospital-user me-2"></i>
                                         Gestionar IPS
                                     </button>
+                                    <button *ngIf="canViewIpsGestion" class="btn btn-outline-info btn-sm" (click)="activatePanel('ipsGestion')">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        IPS Gestión
+                                    </button>
+                                </div>
+                                
+                                <!-- Mensaje cuando no hay permisos -->
+                                <div *ngIf="!hasAnyPermission()" class="text-center text-muted">
+                                    <i class="fas fa-lock fa-2x mb-3"></i>
+                                    <p class="mb-0">No tienes permisos asignados para acceder a las funcionalidades del sistema.</p>
+                                    <small>Contacta al administrador para obtener los permisos necesarios.</small>
                                 </div>
                             </div>
                         </div>
@@ -84,17 +95,17 @@
             </div>
         </div>
 
-        <!-- Panel Formulario de Registro de Usuarios -->
-        <app-registro-usuarios *ngIf="activePanel === 'registroUsuarios'"></app-registro-usuarios>
+        <!-- Panel Formulario de Registro de Usuarios - Solo Administrador con Lectura y Escritura -->
+        <app-registro-usuarios *ngIf="activePanel === 'registroUsuarios' && canViewGestorUsuarios"></app-registro-usuarios>
 
-        <!-- Panel Gestor de IPS -->
-        <app-gestor-ips *ngIf="activePanel === 'gestorIps'"></app-gestor-ips>
+        <!-- Panel Gestor de IPS - Administrador y Supervisor -->
+        <app-gestor-ips *ngIf="activePanel === 'gestorIps' && canViewAdminIps"></app-gestor-ips>
 
-        <!-- Panel IPS Gestion -->
-        <app-ips-gestion *ngIf="activePanel === 'ipsGestion'"></app-ips-gestion>
+        <!-- Panel IPS Gestion - Administrador, Supervisor y Usuario -->
+        <app-ips-gestion *ngIf="activePanel === 'ipsGestion' && canViewIpsGestion"></app-ips-gestion>
 
-        <!-- Panel Formulario de Hoja de Vida -->
-        <app-hoja-vida *ngIf="activePanel === 'hojaVida'"></app-hoja-vida>
+        <!-- Panel Formulario de Hoja de Vida - Administrador, Supervisor y Cliente -->
+        <app-hoja-vida *ngIf="activePanel === 'hojaVida' && canViewGestorHojaVida"></app-hoja-vida>
     </main>
 </div>
 

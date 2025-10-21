@@ -135,6 +135,32 @@
     border-color: #dee2e6;
 }
 
+/* Estilos para el modal del visualizador de PDF */
+.swal-pdf-viewer {
+    padding: 20px !important;
+}
+
+.swal-pdf-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 80vh !important;
+    overflow: hidden !important;
+}
+
+.swal-pdf-viewer .swal2-html-container {
+    height: 80vh !important;
+    max-height: 80vh !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.swal-pdf-viewer iframe {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
 .spinner-border {
     width: 3rem;
     height: 3rem;

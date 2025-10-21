@@ -34,6 +34,12 @@ export class Home implements OnInit, OnDestroy {
     user: User | null = null;
     private tokenCheckInterval: any;
 
+    // Variables para controlar la visibilidad de los paneles
+    canViewGestorUsuarios: boolean = false;
+    canViewAdminIps: boolean = false;
+    canViewIpsGestion: boolean = false;
+    canViewGestorHojaVida: boolean = false;
+
     constructor(
         private router: Router,
         private authService: AuthService
@@ -54,6 +60,9 @@ export class Home implements OnInit, OnDestroy {
             return;
         }
 
+        // Establecer permisos basados en el perfil
+        this.setPermissions();
+
         // Configurar verificación periódica del token cada 2 minutos
         this.tokenCheckInterval = setInterval(() => {
             this.checkAuthStatus();
@@ -66,6 +75,86 @@ export class Home implements OnInit, OnDestroy {
     hasPermiso(tipo: 'Lectura' | 'Escritura'): boolean {
         const permiso = this.user?.permiso?.toLowerCase() ?? '';
         return permiso.includes(tipo.toLowerCase());
+    }
+
+    /**
+     * Establece los permisos basados en el perfil del usuario
+     */
+    private setPermissions(): void {
+        if (!this.user || !this.user.perfil) {
+            this.resetPermissions();
+            return;
+        }
+
+        const perfil = this.user.perfil.toLowerCase();
+        const permiso = this.user.permiso?.toLowerCase() || '';
+
+        // Resetear permisos
+        this.resetPermissions();
+
+        switch (perfil) {
+            case 'administrador':
+                // Administrador con Lectura y Escritura puede ver todo
+                if (permiso.includes('lectura') && permiso.includes('escritura')) {
+                    this.canViewGestorUsuarios = true;
+                    this.canViewAdminIps = true;
+                    this.canViewIpsGestion = true;
+                    this.canViewGestorHojaVida = true;
+                }
+                break;
+
+            case 'supervisor':
+                // Supervisor puede ver todo menos Gestor de Usuario
+                this.canViewAdminIps = true;
+                this.canViewIpsGestion = true;
+                this.canViewGestorHojaVida = true;
+                break;
+
+            case 'usuario':
+                // Usuario solo puede ver IPS Gestión
+                this.canViewIpsGestion = true;
+                break;
+
+            case 'cliente':
+                // Cliente solo puede ver Gestor Hoja de Vida
+                this.canViewGestorHojaVida = true;
+                break;
+
+            default:
+                // Perfil no reconocido, no mostrar nada
+                this.resetPermissions();
+                break;
+        }
+    }
+
+    /**
+     * Resetea todos los permisos a false
+     */
+    private resetPermissions(): void {
+        this.canViewGestorUsuarios = false;
+        this.canViewAdminIps = false;
+        this.canViewIpsGestion = false;
+        this.canViewGestorHojaVida = false;
+    }
+
+    /**
+     * Verifica si el usuario puede acceder a un panel específico
+     */
+    canAccessPanel(panel: string): boolean {
+        switch (panel) {
+            case 'registroUsuarios':
+                return this.canViewGestorUsuarios;
+            case 'gestorIps':
+                return this.canViewAdminIps;
+            case 'ipsGestion':
+                return this.canViewIpsGestion;
+            case 'hojaVida':
+                return this.canViewGestorHojaVida;
+            case 'dashboard':
+                return true; // Dashboard siempre accesible
+            default:
+                return false;
+        }
     }
 
     logout(): void {
@@ -83,8 +172,17 @@ export class Home implements OnInit, OnDestroy {
     activePanel: 'dashboard' | 'registroUsuarios' | 'gestorIps' | 'hojaVida' | 'ipsGestion' = 'dashboard';
 
     activatePanel(panel: string) {
-        if (panel === 'dashboard' || panel === 'registroUsuarios' || panel === 'gestorIps' || panel === 'hojaVida' || panel === 'ipsGestion') {
+        // Validar que el panel sea válido y que el usuario tenga permisos
+        if ((panel === 'dashboard' || panel === 'registroUsuarios' || panel === 'gestorIps' || panel === 'hojaVida' || panel === 'ipsGestion') && this.canAccessPanel(panel)) {
             this.activePanel = panel;
+        } else if (!this.canAccessPanel(panel)) {
+            // Mostrar mensaje de acceso denegado
+            Swal.fire({
+                title: 'Acceso Denegado',
+                text: 'No tienes permisos para acceder a esta sección.',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
         }
     }
 
@@ -103,6 +201,13 @@ export class Home implements OnInit, OnDestroy {
                 this.authService.logout();
             });
         }
+    }
+
+    /**
+     * Verifica si el usuario tiene al menos un permiso
+     */
+    hasAnyPermission(): boolean {
+        return this.hasPermiso('Lectura') || this.hasPermiso('Escritura');
     }
 
     ngOnDestroy(): void {

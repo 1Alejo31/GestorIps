@@ -17,7 +17,7 @@ export class IpsGestionService {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
         });
-        
+
         return this.http.get<any>(`${this.apiUrl}/consultar`, { headers }).pipe(
             catchError((error: HttpErrorResponse) => {
                 if (error.error && typeof error.error === 'object' && error.error.hasOwnProperty('error')) {
@@ -37,7 +37,7 @@ export class IpsGestionService {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
         });
-        
+
 
         return this.http.put<any>(`${this.apiUrl}/agendar`, datosAgendamiento, { headers }).pipe(
             catchError((error: HttpErrorResponse) => {
@@ -58,11 +58,11 @@ export class IpsGestionService {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
         });
-        
+
         const payload = {
             ips_id: ipsId
         };
-        
+
         return this.http.post<any>(`${this.apiUrl}/por_ips`, payload, { headers }).pipe(
             catchError((error: HttpErrorResponse) => {
                 if (error.error && typeof error.error === 'object' && error.error.hasOwnProperty('error')) {
@@ -81,12 +81,13 @@ export class IpsGestionService {
         const headers = new HttpHeaders({
             Authorization: `Bearer ${token}`
         });
-        
+
         const formData = new FormData();
+        formData.append('id', hojaVidaId);
+        formData.append('token', token);
         formData.append('pdf', pdfFile);
-        formData.append('hojaVidaId', hojaVidaId);
-        
-        return this.http.post<any>(`${this.apiUrl}/cargar-pdf`, formData, { headers }).pipe(
+
+        return this.http.put<any>('http://localhost:3000/api/pdf/pdf', formData, { headers }).pipe(
             catchError((error: HttpErrorResponse) => {
                 if (error.error && typeof error.error === 'object' && error.error.hasOwnProperty('error')) {
                     return new Observable(observer => {
@@ -94,6 +95,22 @@ export class IpsGestionService {
                         observer.complete();
                     });
                 }
+                return throwError(() => error);
+            })
+        );
+    }
+
+    obtenerPDF(filename: string): Observable<Blob> {
+        const token = localStorage.getItem('token') ?? '';
+        const headers = new HttpHeaders({
+            'Authorization': `Bearer ${token}`
+        });
+
+        return this.http.get(`http://localhost:3000/api/pdf/pdf/${filename}`, {
+            headers,
+            responseType: 'blob'
+        }).pipe(
+            catchError((error: HttpErrorResponse) => {
                 return throwError(() => error);
             })
         );
