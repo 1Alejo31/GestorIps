@@ -42,13 +42,9 @@ export class RegisterHojaVidaService {
             'Content-Type': 'application/json'
         });
 
-        console.log('Haciendo petición a:', this.consultarUrl);
-        console.log('Token presente:', !!token);
-
         return this.http.get<any>(this.consultarUrl, { headers });
     }
 
-    // Validar datos antes del envío
     validateHojaVida(hojaVida: any): { isValid: boolean, errors: string[] } {
         const errors: string[] = [];
         const requiredFields = [

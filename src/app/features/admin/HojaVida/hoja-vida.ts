@@ -756,22 +756,16 @@ export class HojaVida {
         this.hojaVidaService.consultarHojasVida().subscribe({
             next: (response) => {
                 this.isLoadingConsulta = false;
-                console.log('Respuesta completa del servicio:', response);
                 
                 if (response.error === 0) {
                     // La estructura correcta es response.response.data
                     this.hojasVidaExistentes = response.response?.data || [];
                     this.totalItems = response.response?.total || this.hojasVidaExistentes.length;
                     
-                    console.log('Hojas de vida cargadas:', this.hojasVidaExistentes.length);
-                    console.log('Total items:', this.totalItems);
-                    
                     this.filtrarHojasVida();
                     
                     // Mostrar mensaje de éxito
-                    if (this.hojasVidaExistentes.length > 0) {
-                        console.log('✅ Datos cargados correctamente');
-                    } else {
+                    if (this.hojasVidaExistentes.length === 0) {
                         Swal.fire({
                             icon: 'info',
                             title: 'Sin datos',
@@ -779,7 +773,6 @@ export class HojaVida {
                         });
                     }
                 } else {
-                    console.error('Error en la respuesta:', response);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
@@ -790,7 +783,6 @@ export class HojaVida {
             error: (error) => {
                 this.isLoadingConsulta = false;
                 
-                // Verificar si es un error de autenticación
                 if (error.status === 401) {
                     Swal.fire({
                         icon: 'warning',
@@ -803,7 +795,6 @@ export class HojaVida {
                     return;
                 }
                 
-                // Verificar si no hay token
                 if (!this.authService.getToken()) {
                     Swal.fire({
                         icon: 'warning',
@@ -816,7 +807,6 @@ export class HojaVida {
                     return;
                 }
                 
-                // Otros errores
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',

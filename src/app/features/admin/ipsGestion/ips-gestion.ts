@@ -433,11 +433,9 @@ export class IpsGestion implements OnInit {
 
         // TEMPORAL: Si no existen los IDs, agregarlos al localStorage
         if (userInfo && (!userInfo.id || !userInfo.ips_id)) {
-            console.log('🔧 Actualizando localStorage con IDs temporales...');
             userInfo.id = userInfo.id || 'USER_TEMP_ID_123';
             userInfo.ips_id = userInfo.ips_id || 'IPS_TEMP_ID_456';
             localStorage.setItem('user', JSON.stringify(userInfo));
-            console.log('✅ localStorage actualizado:', userInfo);
         }
 
         // Verificar si tenemos los IDs necesarios
@@ -470,14 +468,10 @@ export class IpsGestion implements OnInit {
             ips_id: userInfo?.ips_id || 'IPS_NO_IDENTIFICADA'
         };
 
-        // Imprimir el JSON en la consola
-        console.log('Datos para actualizar hoja de vida:', JSON.stringify(updatePayload, null, 2));
-
         // Llamar al servicio para actualizar la hoja de vida
         this.ipsGestionService.agendarCita(updatePayload).subscribe({
             next: (response) => {
                 this.isLoadingAgendamiento = false;
-                console.log('Respuesta del servicio:', response);
 
                 Swal.fire({
                     title: '¡Cita Agendada Exitosamente!',
