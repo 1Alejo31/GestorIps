@@ -36,6 +36,13 @@ interface HojaVida {
     ESTRATO: string;
     TIPO_MEDIO: string;
     COLEGIO: string;
+    // Nuevos campos para casos tomados
+    EXAMENES?: string;
+    FECHA_HORA?: string;
+    IPS_ID?: string;
+    RECOMENDACIONES?: string;
+    USUARIO_ID?: string;
+    NOMBREIPS?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -51,7 +58,7 @@ export class IpsGestion implements OnInit {
 
     activeTab = 'consulta';
 
-    // Propiedades para consulta
+    // Propiedades para la gestión de hojas de vida
     hojasVida: HojaVida[] = [];
     hojasVidaFiltradas: HojaVida[] = [];
     isLoadingConsulta = false;
@@ -59,6 +66,21 @@ export class IpsGestion implements OnInit {
     currentPage = 1;
     itemsPerPage = 10;
     totalItems = 0;
+
+    // Propiedades para casos tomados
+    casosTomados: HojaVida[] = [];
+    casosTomadosFiltrados: HojaVida[] = [];
+    isLoadingCasos = false;
+    searchTermCasos = '';
+    currentPageCasos = 1;
+    itemsPerPageCasos = 10;
+    totalItemsCasos = 0;
+
+    // Propiedades para modal de PDF
+    selectedCaso: HojaVida | null = null;
+    selectedPdfFile: File | null = null;
+    pdfPreviewUrl: string | null = null;
+    isLoadingPdf = false;
 
     // Formulario de agendamiento
     agendamientoForm!: FormGroup;
@@ -90,6 +112,8 @@ export class IpsGestion implements OnInit {
         this.activeTab = tab;
         if (tab === 'consulta') {
             this.consultarHojasVida();
+        } else if (tab === 'casos') {
+            this.consultarCasosTomados();
         }
     }
 
@@ -276,6 +300,41 @@ export class IpsGestion implements OnInit {
         });
 
         html += '</div></div></div>';
+
+        // Información Médica (solo para casos tomados)
+        if (hoja.EXAMENES || hoja.FECHA_HORA || hoja.RECOMENDACIONES || hoja.NOMBREIPS) {
+            html += '<div class="card mb-3">';
+            html += '<div class="card-header bg-success text-white">';
+            html += '<h6 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Información Médica</h6>';
+            html += '</div>';
+            html += '<div class="card-body">';
+            html += '<div class="row">';
+
+            const medicalFields = [
+                { key: 'EXAMENES', label: '🔬 Exámenes', value: hoja.EXAMENES },
+                { key: 'FECHA_HORA', label: '📅 Fecha y Hora', value: this.formatearFechaHora(hoja.FECHA_HORA) },
+                { key: 'NOMBREIPS', label: '🏥 IPS', value: hoja.NOMBREIPS }
+            ];
+
+            medicalFields.forEach(field => {
+                if (field.value && field.value !== 'N/A') {
+                    html += `<div class="col-md-6 mb-2 p-2" style="border-radius: 5px;">`;
+                    html += `<strong class="text-muted">${field.label}:</strong><br>`;
+                    html += `<span class="text-dark" style="font-size: 1.1em; font-family: monospace;">${field.value}</span>`;
+                    html += `</div>`;
+                }
+            });
+
+            // Recomendaciones en una fila completa
+            if (hoja.RECOMENDACIONES) {
+                html += `<div class="col-12 mb-2 p-2" style="border-radius: 5px;">`;
+                html += `<strong class="text-muted">💡 Recomendaciones:</strong><br>`;
+                html += `<div class="alert alert-info mt-2" style="font-size: 1.1em;">${hoja.RECOMENDACIONES}</div>`;
+                html += `</div>`;
+            }
+
+            html += '</div></div></div>';
+        }
 
         html += '</div>';
 
@@ -500,6 +559,315 @@ export class IpsGestion implements OnInit {
         });
     }
 
+    // ==================== MÉTODOS PARA CASOS TOMADOS ====================
+
+    consultarCasosTomados() {
+        this.isLoadingCasos = true;
+        
+        // Obtener el ips_id del usuario logueado
+        const userInfo = this.authService.getUserInfo();
+        const ipsId = userInfo?.ips_id;
+        
+        if (!ipsId) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo obtener el ID de la IPS. Por favor, inicie sesión nuevamente.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+            this.isLoadingCasos = false;
+            return;
+        }
+
+        this.ipsGestionService.consultarCasosTomados(ipsId).subscribe({
+            next: (response) => {
+                this.isLoadingCasos = false;
+
+                if (response?.error === 1) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.response?.mensaje || 'Error al consultar casos tomados',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                } else {
+                    this.casosTomados = response.response?.data || [];
+                    this.totalItemsCasos = this.casosTomados.length;
+                    this.filtrarCasosTomados();
+                }
+            },
+            error: (error) => {
+                this.isLoadingCasos = false;
+                Swal.fire({
+                    title: 'Error de Conexión',
+                    text: 'No se pudo conectar con el servidor. Verifique su conexión.',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
+    }
+
+    filtrarCasosTomados() {
+        // Validar que casosTomados sea un array válido
+        if (!Array.isArray(this.casosTomados)) {
+            this.casosTomados = [];
+            this.casosTomadosFiltrados = [];
+            return;
+        }
+
+        if (!this.searchTermCasos.trim()) {
+            this.casosTomadosFiltrados = [...this.casosTomados];
+        } else {
+            const termino = this.searchTermCasos.toLowerCase();
+            this.casosTomadosFiltrados = this.casosTomados.filter(caso =>
+                caso.NOMBRE?.toLowerCase().includes(termino) ||
+                caso.PRIMER_APELLIDO?.toLowerCase().includes(termino) ||
+                caso.SEGUNDO_APELLIDO?.toLowerCase().includes(termino) ||
+                caso.DOCUMENTO?.toLowerCase().includes(termino) ||
+                caso.CORREO?.toLowerCase().includes(termino) ||
+                caso.CIUDAD?.toLowerCase().includes(termino) ||
+                caso.EXAMENES?.toLowerCase().includes(termino) ||
+                caso.NOMBREIPS?.toLowerCase().includes(termino)
+            );
+        }
+        this.currentPageCasos = 1;
+    }
+
+    onSearchChangeCasos() {
+        this.filtrarCasosTomados();
+    }
+
+    get paginatedCasosTomados() {
+        const start = (this.currentPageCasos - 1) * this.itemsPerPageCasos;
+        return this.casosTomadosFiltrados.slice(start, start + this.itemsPerPageCasos);
+    }
+
+    get totalPagesCasos() {
+        return Math.ceil(this.casosTomadosFiltrados.length / this.itemsPerPageCasos);
+    }
+
+    changePageCasos(page: number) {
+        if (page >= 1 && page <= this.totalPagesCasos) {
+            this.currentPageCasos = page;
+        }
+    }
+
+    cargarPDF(caso: HojaVida) {
+        Swal.fire({
+            title: 'Cargar PDF',
+            html: `
+                <div class="text-start mb-3">
+                    <p><strong>Paciente:</strong> ${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}</p>
+                    <p><strong>Documento:</strong> ${caso.DOCUMENTO}</p>
+                </div>
+                <div class="mb-3">
+                    <label for="pdfFile" class="form-label">Seleccionar archivo PDF:</label>
+                    <input type="file" id="pdfFile" class="form-control" accept=".pdf">
+                </div>
+                <div id="pdfPreview" class="mt-3" style="display: none;">
+                    <h6>Vista previa:</h6>
+                    <embed id="pdfEmbed" type="application/pdf" width="100%" height="300px">
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar PDF',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            width: '600px',
+            didOpen: () => {
+                const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+                const pdfPreview = document.getElementById('pdfPreview') as HTMLDivElement;
+                const pdfEmbed = document.getElementById('pdfEmbed') as HTMLEmbedElement;
+
+                fileInput?.addEventListener('change', (event) => {
+                    const file = (event.target as HTMLInputElement).files?.[0];
+                    if (file && file.type === 'application/pdf') {
+                        const fileURL = URL.createObjectURL(file);
+                        pdfEmbed.src = fileURL;
+                        pdfPreview.style.display = 'block';
+                    } else if (file) {
+                        Swal.showValidationMessage('Por favor seleccione un archivo PDF válido');
+                        pdfPreview.style.display = 'none';
+                    }
+                });
+            },
+            preConfirm: () => {
+                const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+                const file = fileInput?.files?.[0];
+                
+                if (!file) {
+                    Swal.showValidationMessage('Por favor seleccione un archivo PDF');
+                    return false;
+                }
+                
+                if (file.type !== 'application/pdf') {
+                    Swal.showValidationMessage('El archivo debe ser un PDF');
+                    return false;
+                }
+                
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    Swal.showValidationMessage('El archivo no debe superar los 10MB');
+                    return false;
+                }
+                
+                return file;
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                this.procesarCargaPDF(caso._id, result.value);
+            }
+        });
+    }
+
+    onPdfFileSelected(event: any) {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.type !== 'application/pdf') {
+                Swal.fire({
+                    title: 'Archivo Inválido',
+                    text: 'Por favor seleccione un archivo PDF válido',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+                Swal.fire({
+                    title: 'Archivo Muy Grande',
+                    text: 'El archivo no debe superar los 10MB',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                event.target.value = '';
+                return;
+            }
+
+            this.selectedPdfFile = file;
+            
+            // Crear URL para vista previa
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.pdfPreviewUrl = e.target?.result as string;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    guardarPDF() {
+        if (!this.selectedCaso || !this.selectedPdfFile) {
+            Swal.fire({
+                title: 'Error',
+                text: 'No hay caso o archivo seleccionado',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        this.procesarCargaPDF(this.selectedCaso._id, this.selectedPdfFile);
+    }
+
+    private procesarCargaPDF(hojaVidaId: string, pdfFile: File) {
+        this.isLoadingPdf = true;
+
+        this.ipsGestionService.cargarPDF(hojaVidaId, pdfFile).subscribe({
+            next: (response) => {
+                this.isLoadingPdf = false;
+                
+                if (response?.error === 1) {
+                    Swal.fire({
+                        title: 'Error al Cargar PDF',
+                        text: response.response?.mensaje || 'Error desconocido del servidor',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
+                } else {
+                    // Cerrar modal
+                    const modalElement = document.getElementById('pdfModal');
+                    if (modalElement) {
+                        const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+                        modal?.hide();
+                    }
+                    
+                    Swal.fire({
+                        title: '¡PDF Cargado Exitosamente!',
+                        text: 'El archivo PDF se ha guardado correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                    });
+                    
+                    // Limpiar datos del modal
+                    this.selectedCaso = null;
+                    this.selectedPdfFile = null;
+                    this.pdfPreviewUrl = null;
+                    
+                    // Limpiar el input de archivo
+                    const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                    
+                    // Actualizar la lista de casos
+                    this.consultarCasosTomados();
+                }
+            },
+            error: (error) => {
+                this.isLoadingPdf = false;
+                Swal.fire({
+                    title: 'Error de Conexión',
+                    text: 'No se pudo cargar el PDF. Verifique su conexión.',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        });
+    }
+
+    exportarExcelCasos() {
+        if (this.casosTomadosFiltrados.length === 0) {
+            Swal.fire({
+                title: 'Sin Datos',
+                text: 'No hay casos tomados para exportar',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        const datosExport = this.casosTomadosFiltrados.map(caso => ({
+            'Documento': caso.DOCUMENTO,
+            'Nombre Completo': `${caso.NOMBRE} ${caso.PRIMER_APELLIDO} ${caso.SEGUNDO_APELLIDO}`,
+            'Edad': caso.EDAD,
+            'Género': caso.GENERO,
+            'Exámenes': caso.EXAMENES || 'N/A',
+            'Fecha/Hora Cita': this.formatearFechaHora(caso.FECHA_HORA),
+            'IPS': caso.NOMBREIPS || 'N/A',
+            'Recomendaciones': caso.RECOMENDACIONES || 'N/A',
+            'Correo': caso.CORREO,
+            'Teléfono': caso.TELEFONO,
+            'Ciudad': caso.CIUDAD,
+            'Estado': caso.ESTADO
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(datosExport);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Casos Tomados');
+
+        const fecha = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(wb, `casos_tomados_${fecha}.xlsx`);
+
+        Swal.fire({
+            title: '¡Exportación Exitosa!',
+            text: `Se han exportado ${datosExport.length} registros`,
+            icon: 'success',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
     getEstadoBadgeClass(estado: string): string {
         switch (estado?.toLowerCase()) {
             case 'activo':
@@ -510,6 +878,23 @@ export class IpsGestion implements OnInit {
                 return 'bg-warning';
             default:
                 return 'bg-secondary';
+        }
+    }
+
+    formatearFechaHora(fechaHora: string | undefined): string {
+        if (!fechaHora) return 'N/A';
+        
+        try {
+            const fecha = new Date(fechaHora);
+            return fecha.toLocaleDateString('es-CO', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return 'Fecha inválida';
         }
     }
 }

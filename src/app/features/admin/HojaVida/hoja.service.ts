@@ -10,9 +10,9 @@ export class RegisterHojaVidaService {
     //private apiUrl = 'http://52.15.143.100:3000/api/hojas-vida/';
     //private consultarUrl = 'http://52.15.143.100:3000/api/hojas-vida/consultar';
     private apiUrl = 'http://localhost:3000/api/hojas-vida/';
-    private consultarUrl = 'http://localhost:3000/api/hojas-vida/consultar';
+    private consultarUrl = 'http://localhost:3000/api/hojas-vida/hojas-vida-full';
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
     // Registro individual
     register(hojaVida: any): Observable<any> {
@@ -41,6 +41,10 @@ export class RegisterHojaVidaService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
         });
+
+        console.log('Haciendo petición a:', this.consultarUrl);
+        console.log('Token presente:', !!token);
+
         return this.http.get<any>(this.consultarUrl, { headers });
     }
 

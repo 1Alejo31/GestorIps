@@ -756,15 +756,34 @@ export class HojaVida {
         this.hojaVidaService.consultarHojasVida().subscribe({
             next: (response) => {
                 this.isLoadingConsulta = false;
+                console.log('Respuesta completa del servicio:', response);
+                
                 if (response.error === 0) {
-                    this.hojasVidaExistentes = response.response.hojas_vida || [];
-                    this.totalItems = response.response.total_registros || 0;
+                    // La estructura correcta es response.response.data
+                    this.hojasVidaExistentes = response.response?.data || [];
+                    this.totalItems = response.response?.total || this.hojasVidaExistentes.length;
+                    
+                    console.log('Hojas de vida cargadas:', this.hojasVidaExistentes.length);
+                    console.log('Total items:', this.totalItems);
+                    
                     this.filtrarHojasVida();
+                    
+                    // Mostrar mensaje de éxito
+                    if (this.hojasVidaExistentes.length > 0) {
+                        console.log('✅ Datos cargados correctamente');
+                    } else {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Sin datos',
+                            text: 'No se encontraron hojas de vida registradas'
+                        });
+                    }
                 } else {
+                    console.error('Error en la respuesta:', response);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'Error al consultar las hojas de vida'
+                        text: response.response?.mensaje || response.mensaje || 'Error al consultar las hojas de vida'
                     });
                 }
             },
